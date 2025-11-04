@@ -1,0 +1,28 @@
+category_id,category_path,parent_category,level,display_name,color
+cat_001,transportation,,0,Transportation,#3498db
+cat_002,transportation/car,transportation,1,Car Expenses,#2980b9
+cat_003,transportation/car/gas,transportation/car,2,Gas & Fuel,#1f618d
+cat_004,transportation/car/maintenance,transportation/car,2,Maintenance & Repairs,#1a5276
+cat_005,transportation/car/insurance,transportation/car,2,Car Insurance,#154360
+cat_006,transportation/rideshare,transportation,1,Rideshare,#5dade2
+cat_007,transportation/air_travel,transportation,1,Air Travel,#85c1e9
+cat_008,housing,,0,Housing,#e74c3c
+cat_009,housing/rent,housing,1,Rent,#c0392b
+cat_010,housing/utilities,housing,1,Utilities,#a93226
+cat_011,housing/maintenance,housing,1,Maintenance,#922b21
+cat_012,dining,,0,Dining,#f39c12
+cat_013,dining/coffee,dining,1,Coffee Shops,#e67e22
+cat_014,dining/restaurants,dining,1,Restaurants,#d68910
+cat_015,dining/groceries,dining,1,Groceries,#ca6f1e
+cat_016,entertainment,,0,Entertainment,#9b59b6
+cat_017,entertainment/streaming,entertainment,1,Streaming Services,#8e44ad
+cat_018,entertainment/recreation,entertainment,1,Recreation,#7d3c98
+cat_019,health,,0,Health & Fitness,#2ecc71
+cat_020,health/gym,health,1,Gym & Fitness,#27ae60
+cat_021,health/insurance,health,1,Health Insurance,#229954
+cat_022,income,,0,Income,#16a085
+cat_023,income/salary,income,1,Salary,#138d75
+cat_024,income/freelance,income,1,Freelance,#117a65
+cat_025,shopping,,0,Shopping,#e91e63
+cat_026,shopping/general,shopping,1,General Shopping,#c2185b
+cat_027,shopping/online,shopping,1,Online Shopping,#ad1457

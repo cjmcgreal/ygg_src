@@ -1,0 +1,35 @@
+rule_id,substring,category_path,case_sensitive,priority,enabled
+rule_001,starbucks,dining/coffee,False,10,True
+rule_002,coffee,dining/coffee,False,5,True
+rule_003,uber,transportation/rideshare,False,15,True
+rule_004,lyft,transportation/rideshare,False,15,True
+rule_005,shell,transportation/car/gas,False,10,True
+rule_006,chevron,transportation/car/gas,False,10,True
+rule_007,gas station,transportation/car/gas,False,8,True
+rule_008,mechanic,transportation/car/maintenance,False,10,True
+rule_009,auto repair,transportation/car/maintenance,False,10,True
+rule_010,delta,transportation/air_travel,False,15,True
+rule_011,united airlines,transportation/air_travel,False,15,True
+rule_012,american airlines,transportation/air_travel,False,15,True
+rule_013,rent,housing/rent,False,20,True
+rule_014,electricity,housing/utilities,False,15,True
+rule_015,water bill,housing/utilities,False,15,True
+rule_016,gas bill,housing/utilities,False,14,True
+rule_017,internet,housing/utilities,False,15,True
+rule_018,whole foods,dining/groceries,False,12,True
+rule_019,safeway,dining/groceries,False,12,True
+rule_020,trader joe,dining/groceries,False,12,True
+rule_021,chipotle,dining/restaurants,False,10,True
+rule_022,restaurant,dining/restaurants,False,5,True
+rule_023,netflix,entertainment/streaming,False,15,True
+rule_024,spotify,entertainment/streaming,False,15,True
+rule_025,hulu,entertainment/streaming,False,15,True
+rule_026,gym,health/gym,False,12,True
+rule_027,fitness,health/gym,False,10,True
+rule_028,insurance,health/insurance,False,5,True
+rule_029,paycheck,income/salary,False,20,True
+rule_030,salary,income/salary,False,20,True
+rule_031,freelance,income/freelance,False,18,True
+rule_032,amazon,shopping/online,False,10,True
+rule_033,target,shopping/general,False,10,True
+rule_034,walmart,shopping/general,False,10,True

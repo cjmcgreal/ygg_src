@@ -1,0 +1,8 @@
+transaction_id,approved_category,approval_date,approval_method
+txn_001,dining/coffee,2025-01-21 14:30:00,manual_accept
+txn_002,transportation/rideshare,2025-01-21 14:31:00,manual_accept
+txn_003,transportation/car/gas,2025-01-21 14:32:00,manual_accept
+txn_005,income/salary,2025-01-21 14:33:00,manual_accept
+txn_006,housing/rent,2025-01-21 14:34:00,manual_accept
+txn_007,entertainment/streaming,2025-01-26 10:15:00,manual_accept
+txn_010,transportation/car/maintenance,2025-01-31 09:20:00,manual_edit

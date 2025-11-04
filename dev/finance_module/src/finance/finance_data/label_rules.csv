@@ -1,0 +1,7 @@
+rule_id,substring,category_path,case_sensitive,priority,enabled
+rule_1,starbucks,dining/coffee,False,10,True
+rule_2,coffee,dining/coffee,False,5,True
+rule_3,uber,transportation/rideshare,False,15,True
+rule_4,shell,transportation/car/gas,False,10,True
+rule_5,gas station,transportation/car/gas,False,8,True
+rule_6,paycheck,income/salary,False,20,True

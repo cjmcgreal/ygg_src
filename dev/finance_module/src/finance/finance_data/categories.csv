@@ -1,0 +1,9 @@
+category_id,category_path,parent_category,level,display_name,color
+cat_1,dining,,0,Dining,#FF0000
+cat_2,dining/coffee,dining,1,Coffee,#FF5555
+cat_3,transportation,,0,Transportation,#0000FF
+cat_4,transportation/rideshare,transportation,1,Rideshare,#5555FF
+cat_5,transportation/car,transportation,1,Car,#8888FF
+cat_6,transportation/car/gas,transportation/car,2,Gas,#AAAAFF
+cat_7,income,,0,Income,#00FF00
+cat_8,income/salary,income,1,Salary,#55FF55
