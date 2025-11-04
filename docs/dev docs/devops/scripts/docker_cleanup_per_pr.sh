@@ -1,0 +1,1 @@
+docker stop yggdrasill-preview-2 && docker rm yggdrasill-preview-2

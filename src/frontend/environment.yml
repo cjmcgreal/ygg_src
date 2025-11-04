@@ -1,0 +1,15 @@
+name: ygg
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - streamlit
+  - numpy
+  - pandas
+  - plotly
+  - python-frontmatter
+  - pyvis
+  - scipy
+  - networkx
+  - pip

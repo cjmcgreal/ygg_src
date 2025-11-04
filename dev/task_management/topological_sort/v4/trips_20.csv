@@ -1,0 +1,21 @@
+trip_id,name,country,distance,cultural_rank,completed,kayak_required,kayak_prev_id,paraglide_required,paraglide_prev_id,ski_required,ski_prev_id
+T001,Local Lake Paddle,USA,15,12,TRUE,TRUE,,FALSE,,FALSE,
+T002,Intermediate River,USA,120,11,FALSE,TRUE,T001,FALSE,,FALSE,
+T003,Advanced Canyon,USA,240,10,FALSE,TRUE,T002,FALSE,,FALSE,
+T004,City Museum Weekend,USA,60,5,FALSE,FALSE,,FALSE,,FALSE,
+T005,Norway Fjords,Norway,320,4,FALSE,TRUE,T001,FALSE,,FALSE,
+T006,Italy Cultural Tour,Italy,800,2,FALSE,FALSE,,FALSE,,FALSE,
+T007,Chile Lakes,Chile,2000,6,FALSE,TRUE,T002,FALSE,,FALSE,
+T008,Paragliding Hills,USA,180,15,TRUE,FALSE,,TRUE,,FALSE,
+T009,High Alpine Paraglide,France,3200,7,FALSE,FALSE,,TRUE,T008,FALSE,
+T010,Remote Steppe Festival,Mongolia,4500,3,FALSE,FALSE,,FALSE,,FALSE,
+T011,River Delta Paddle,Vietnam,1500,8,FALSE,TRUE,T001,FALSE,,FALSE,
+T012,Ski Nursery Slope,Switzerland,1000,14,TRUE,FALSE,,FALSE,,TRUE,
+T013,Glacier Approach Ski,Chile,2600,9,FALSE,FALSE,,FALSE,,TRUE,T012
+T014,Coastal Ruins,Portugal,1250,13,FALSE,FALSE,,FALSE,,FALSE,
+T015,Desert Caravan,Morocco,3800,5,FALSE,FALSE,,FALSE,,FALSE,
+T016,Rainforest Expedition,Brazil,5200,1,FALSE,TRUE,T003,FALSE,,FALSE,
+T017,Highlands Roadtrip,Scotland,650,16,FALSE,FALSE,,FALSE,,FALSE,
+T018,Volcanic Lakes,Iceland,6000,12,FALSE,TRUE,T002,FALSE,,FALSE,
+T019,Alpine Culture Loop,Austria,1100,11,FALSE,FALSE,,FALSE,,TRUE,T012
+T020,Andean Culture & Rivers,Argentina,6000,17,FALSE,TRUE,T003,TRUE,T008,FALSE,

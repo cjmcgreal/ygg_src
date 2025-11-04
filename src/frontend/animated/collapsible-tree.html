@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+<meta charset="UTF-8">
+<title>Collapsible Tree</title>
+<style>
+.node circle {
+  fill: #fff;
+  stroke: steelblue;
+  stroke-width: 1px;
+}
+.node text { font: 14px sans-serif; }
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1px;
+}
+</style>
+</head>
+
+<body translate="no">
+<div class="hierarchy-container">
+<script src='https://cdnjs.cloudflare.com/ajax/libs/d3/4.5.0/d3.min.js'></script>
+<script>
+
+let tree = d3.tree;
+let hierarchy = d3.hierarchy;
+let select = d3.select;
+let data = {
+    "name": "root",
+    "children": [
+        {
+            "name": "[[BIF-P-01 - Daily Task Planning]]",
+            "children": [
+                {
+                    "name": "BIF-P-01a - Daily Task Logging"
+                }
+            ]
+        },
+        {
+            "name": "[[BIF-P-02 - Weekly Retro, Review, Planning]]",
+            "children": [
+                {
+                    "name": "BIF-P-01 - Daily Task Planning"
+                },
+                {
+                    "name": "BIF-P-02b - Weekly Task Selection"
+                }
+            ]
+        },
+        {
+            "name": "[[BIF-P-03 - Monthly Planning]]",
+            "children": [
+                {
+                    "name": "BIF-P-02 - Weekly Retro, Review, Planning"
+                }
+            ]
+        },
+        {
+            "name": "[[Domains/Software/yggdrasill/components/M\u00edmisbrunnr/M\u00edmisbrunnr]]",
+            "children": [
+                {
+                    "name": "BIF- procedure index"
+                }
+            ]
+        },
+        {
+            "name": "[[Hl\u00ed\u00f0skj\u00e1lf - Product Root]]",
+            "children": [
+                {
+                    "name": "Start Streamlit App"
+                }
+            ]
+        },
+        {
+            "name": "[[Software - Product Root]]",
+            "children": [
+                {
+                    "name": "SW-P-01a - iPad git operations"
+                }
+            ]
+        },
+        {
+            "name": "[[Task Management Goals]]",
+            "children": [
+                {
+                    "name": "BIF-P-00 - Standard Weekday Routine"
+                }
+            ]
+        },
+        {
+            "name": "[[Travel - User Story Root]]",
+            "children": [
+                {
+                    "name": "SW-1 Closing work for the day"
+                }
+            ]
+        },
+        {
+            "name": "Conrad",
+            "children": [
+                {
+                    "name": "Cooking",
+                    "children": [
+                        {
+                            "name": "Cooking Goals",
+                            "children": [
+                                {
+                                    "name": "Strategic Cooking Goals",
+                                    "children": [
+                                        {
+                                            "name": "Cooking Goal 1 - Don't die of boredom"
+                                        },
+                                        {
+                                            "name": "Cooking Goal 2 - Eat healthy"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Tactical Cooking Goals",
+                                    "children": [
+                                        {
+                                            "name": "Cooking Goal 3 - Whiskey Sour Night"
+                                        },
+                                        {
+                                            "name": "Cooking Goal 4 - Host a Dinner Party"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Cooking Recipes",
+                            "children": [
+                                {
+                                    "name": "Bagel with Lox"
+                                },
+                                {
+                                    "name": "Breakfast Burrito (potatoes)"
+                                },
+                                {
+                                    "name": "Butter Chicken Marinade"
+                                },
+                                {
+                                    "name": "Chicken Thighs with skin"
+                                },
+                                {
+                                    "name": "Cottage Cheese Crust Pizza"
+                                },
+                                {
+                                    "name": "Harissa Chicken"
+                                },
+                                {
+                                    "name": "Healthy Slaw"
+                                },
+                                {
+                                    "name": "Lamb Kofta Kebab"
+                                },
+                                {
+                                    "name": "Oatmeal"
+                                },
+                                {
+                                    "name": "Protein Eggs",
+                                    "children": [
+                                        {
+                                            "name": "Bright Protein Eggs",
+                                            "children": [
+                                                {
+                                                    "name": "Bright Protein Muffins with Goat Cheese and Lemon_v1"
+                                                },
+                                                {
+                                                    "name": "Bright Protein Muffins with Goat Cheese and Lemon_v2"
+                                                },
+                                                {
+                                                    "name": "Bright Protein Muffins with Goat Cheese and Lemon_v3"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "name": "Inspiration - ChatGPT"
+                                        },
+                                        {
+                                            "name": "Protein Eggs - Background"
+                                        },
+                                        {
+                                            "name": "Runestone Description - bright_protein_muffin_v1"
+                                        },
+                                        {
+                                            "name": "Versions - ChatGPT"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Protein Waffles"
+                                },
+                                {
+                                    "name": "Skyr smoothie"
+                                },
+                                {
+                                    "name": "Thai Peanut Chicken - Airfry"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "User Pain Point 1 - Easy shopping list creation"
+                        },
+                        {
+                            "name": "User Pain Point 2 - Shopping list organization"
+                        },
+                        {
+                            "name": "User Pain Point 3 - Store path planning"
+                        }
+                    ]
+                },
+                {
+                    "name": "Exercise",
+                    "children": [
+                        {
+                            "name": "User Pain Point 4 - Logging and planning workouts",
+                            "children": [
+                                {
+                                    "name": "Solutioning - ChatGPT"
+                                },
+                                {
+                                    "name": "Workout Planning"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "User Pain Point 5 - Progress monitoring"
+                        }
+                    ]
+                },
+                {
+                    "name": "Finance"
+                },
+                {
+                    "name": "Music"
+                },
+                {
+                    "name": "Social Media"
+                },
+                {
+                    "name": "Tango"
+                },
+                {
+                    "name": "Task Management",
+                    "children": [
+                        {
+                            "name": "PP-1 Mapping New Notes on Task Creation"
+                        },
+                        {
+                            "name": "PP-2 Task Selection Display"
+                        }
+                    ]
+                },
+                {
+                    "name": "Travel"
+                }
+            ]
+        },
+        {
+            "name": "Procedure 1 - Log a workout",
+            "children": [
+                {
+                    "name": "Ex-P-01b Log Workout of the Day - Version 0.0"
+                },
+                {
+                    "name": "Ex-P-01b Log Workout of the Day - Version 0.1"
+                }
+            ]
+        },
+        {
+            "name": "python",
+            "children": [
+                {
+                    "name": "Start Spyder"
+                }
+            ]
+        },
+        {
+            "name": "software",
+            "children": [
+                {
+                    "name": "SW-P-1 Release Planning"
+                }
+            ]
+        },
+        {
+            "name": "yggdrasill",
+            "children": [
+                {
+                    "name": "SW-P-3 Looking for stuff"
+                }
+            ]
+        },
+        {
+            "name": "Yggdrasill",
+            "children": [
+                {
+                    "name": "about"
+                },
+                {
+                    "name": "Bifr\u00f6st"
+                },
+                {
+                    "name": "Hl\u00ed\u00f0skj\u00e1lf"
+                },
+                {
+                    "name": "M\u00edmisbrunnr",
+                    "children": [
+                        {
+                            "name": "Feature 5 - Exercise History Database"
+                        }
+                    ]
+                },
+                {
+                    "name": "Obsidian Reader",
+                    "children": [
+                        {
+                            "name": "Feature 3 - automate parent relationship creation"
+                        }
+                    ]
+                },
+                {
+                    "name": "Sei\u00f0r\u00fan",
+                    "children": [
+                        {
+                            "name": "Feature 1 - generate shopping list"
+                        },
+                        {
+                            "name": "Sei\u00f0r\u00fan - Version 0"
+                        }
+                    ]
+                },
+                {
+                    "name": "Thor",
+                    "children": [
+                        {
+                            "name": "Ex-P-01b Log Workout of the Day"
+                        },
+                        {
+                            "name": "Feature 2 - Automate Workout Creation"
+                        },
+                        {
+                            "name": "Feature 4 - Simplify Workout Logging",
+                            "children": [
+                                {
+                                    "name": "Verify Streamlit Checklist Path"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Procedure 2 - Create workout plan",
+                            "children": [
+                                {
+                                    "name": "Ex-P-01a Create workout of the day - Version 0p0"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Thor - Version 0p1",
+                            "children": [
+                                {
+                                    "name": "Create Saturday Workout Obsidian Template"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Thor - Version 0p2"
+                        },
+                        {
+                            "name": "workout_planner"
+                        }
+                    ]
+                },
+                {
+                    "name": "Yggdrasill - Cloud Rollout"
+                }
+            ]
+        }
+    ]
+};
+
+class MyTree {
+    constructor() {
+        this.connector = (d) => "M" + d.parent.y + "," + d.parent.x + "V" + d.x + "H" + d.y;
+        this.collapse = (d) => {
+            if (d.children) {
+                d._children = d.children;
+                d._children.forEach(this.collapse);
+                d.children = null;
+            }
+        };
+        this.click = (d) => {
+            if (d.children) {
+                d._children = d.children;
+                d.children = null;
+            } else {
+                d.children = d._children;
+                d._children = null;
+            }
+            this.update(d);
+        };
+        this.update = (source) => {
+            this.width = 800;
+            let nodes = this.tree(this.root);
+            let nodesSort = [];
+            nodes.eachBefore(function (n) { nodesSort.push(n); });
+            this.height = Math.max(500, nodesSort.length * this.barHeight + this.margin.top + this.margin.bottom);
+            let links = nodesSort.slice(1);
+            nodesSort.forEach((n, i) => { n.x = i * this.barHeight; });
+            d3.select('svg').transition()
+                .duration(this.duration)
+                .attr("height", this.height);
+            let node = this.svg.selectAll('g.node')
+                .data(nodesSort, function (d) {
+                return d.id || (d.id = ++this.i);
+            });
+            var nodeEnter = node.enter().append('g')
+                .attr('class', 'node')
+                .attr('transform', function () {
+                return 'translate(' + source.y0 + ',' + source.x0 + ')';
+            })
+                .on('click', this.click);
+            nodeEnter.append('circle')
+                .attr('r', 1e-6)
+                .style('fill', function (d) {
+                return d._children ? 'lightsteelblue' : '#fff';
+            });
+            nodeEnter.append('text')
+                .attr('x', function (d) {
+                return d.children || d._children ? 10 : 10;
+            })
+                .attr('dy', '.35em')
+                .attr('text-anchor', (d) => d.children || d._children ? 'start' : 'start')
+                .text(function (d) {
+                    var s = d.data.name;
+                    if (s.length > 60) s = s.substring(0, 60) + '...';
+                    if ("value" in d.data) s += " (" + d.data.value + ")";
+                    return s;
+            })
+                .style('fill-opacity', 1e-6);
+            nodeEnter.append('svg:title').text(function (d) { return d.data.name; });
+            let nodeUpdate = node.merge(nodeEnter)
+                .transition()
+                .duration(this.duration);
+            nodeUpdate
+                .attr('transform', function (d) {
+                return 'translate(' + d.y + ',' + d.x + ')';
+            });
+            nodeUpdate.select('circle')
+                .attr('r', 4.5)
+                .style('fill', function (d) {
+                return d._children ? 'lightsteelblue' : '#fff';
+            });
+            nodeUpdate.select('text')
+                .style('fill-opacity', 1);
+            var nodeExit = node.exit().transition()
+                .duration(this.duration);
+            nodeExit
+                .attr('transform', function (d) {
+                return 'translate(' + source.y + ',' + source.x + ')';
+            })
+                .remove();
+            nodeExit.select('circle')
+                .attr('r', 1e-6);
+            nodeExit.select('text')
+                .style('fill-opacity', 1e-6);
+            var link = this.svg.selectAll('path.link')
+                .data(links, function (d) {
+                var id = d.id + '->' + d.parent.id;
+                return id;
+            });
+            let linkEnter = link.enter().insert('path', 'g')
+                .attr('class', 'link')
+                .attr('d', (d) => {
+                var o = { x: source.x0, y: source.y0, parent: { x: source.x0, y: source.y0 } };
+                return this.connector(o);
+            });
+            link.merge(linkEnter).transition()
+                .duration(this.duration)
+                .attr('d', this.connector);
+            link.exit().transition()
+                .duration(this.duration)
+                .attr('d', (d) => {
+                var o = { x: source.x, y: source.y, parent: { x: source.x, y: source.y } };
+                return this.connector(o);
+            })
+                .remove();
+            nodesSort.forEach(function (d) {
+                d.x0 = d.x;
+                d.y0 = d.y;
+            });
+        };
+    }
+
+    $onInit() {
+        this.margin = { top: 20, right: 10, bottom: 20, left: 10 };
+        this.width = 1400 - this.margin.right - this.margin.left;
+        this.height = 800 - this.margin.top - this.margin.bottom;
+        this.barHeight = 20;
+        this.barWidth = this.width * .8;
+        this.i = 0;
+        this.duration = 750;
+        this.tree = tree().size([this.width, this.height]);
+        this.tree = tree().nodeSize([0, 30]);
+        this.root = this.tree(hierarchy(data));
+        this.root.children?.forEach((d) => {
+            if (d.children) {
+                d._children = d.children;
+                d._children.forEach(myTree.collapse);
+                d.children = null;
+            }
+        });
+        this.root.each((d) => {
+            d.name = d.id;
+            d.id = this.i;
+            this.i++;
+        });
+        this.root.x0 = this.root.x;
+        this.root.y0 = this.root.y;
+        this.svg = select('.hierarchy-container').append('svg')
+            .attr('width', this.width + this.margin.right + this.margin.left)
+            .attr('height', this.height + this.margin.top + this.margin.bottom)
+            .append('g')
+            .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
+        this.update(this.root);
+    }
+};
+
+let myTree = new MyTree();
+myTree.$onInit();
+</script>
+</body>
+</html>

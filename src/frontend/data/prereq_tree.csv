@@ -1,0 +1,123 @@
+name,parent
+root,
+Plan for exercise db rollout,root
+a task,a prerequisite task
+a prerequisite task,root
+Streamlit fetch data from FastAPI,root
+Create WoD browser checklist from database,root
+User Pain Point 5 - Progress monitoring,root
+User Pain Point 10 - Rotation of Accessories,root
+User Pain Point 1 - Easy shopping list creation,root
+User Pain Point 6 - Task Selection Display,root
+User Pain Point 7 - Ease of logging workouts,root
+User Pain Point 4 - Planning workouts,root
+User Paint Point 8 - ChatGPT Searchability,root
+User Pain Point 1 - Mapping New Notes on Task Creation,root
+User Pain Point 3 - Store path planning,User Pain Point 2 - Shopping list organization
+User Pain Point 9 - Strategic Gym Programming,root
+User Pain Point 2 - Shopping list organization,User Pain Point 1 - Easy shopping list creation
+Automate Kitchen Inventory,root
+Alexa integration,root
+Yggdrasill - Cloud Rollout,root
+Chat-monitoring agent,root
+Interface with humanoid robots,root
+yggdrasill far future,root
+Travel,root
+Tango,root
+Music,root
+Task Management,root
+Social Media,root
+Finance,root
+Exercise,root
+Cooking,root
+Cooking Goal 1 - Don't die of boredom,root
+Cooking Goals,root
+Tactical Cooking Goals,root
+Strategic Cooking Goals,root
+Cooking Goal 4 - Host a Dinner Party,root
+Cooking Goal 3 - Whiskey Sour Night,root
+Cooking Goal 2 - Eat healthy,root
+Thai Peanut Chicken - Airfry,root
+Chicken Thighs with skin,root
+Cottage Cheese Crust Pizza,root
+Oatmeal,root
+Harissa Chicken,root
+Lamb Kofta Kebab,root
+Breakfast Burrito (potatoes),root
+Protein Eggs,root
+Butter Chicken Marinade,root
+Protein Waffles,root
+Skyr smoothie,root
+Cooking Recipes,root
+Bagel with Lox,root
+Healthy Slaw,root
+Inspiration - ChatGPT,root
+Versions - ChatGPT,root
+Runestone Description - bright_protein_muffin_v1,root
+Bright Protein Eggs,root
+Protein Eggs - Background,root
+Bright Protein Muffins with Goat Cheese and Lemon_v2,root
+Bright Protein Muffins with Goat Cheese and Lemon_v3,root
+Bright Protein Muffins with Goat Cheese and Lemon_v1,root
+Solutioning - ChatGPT,root
+Mímisbrunnr,root
+Runestones,root
+Obsidian Reader,root
+Yggdrasill,root
+Hlíðskjálf,root
+yggdrasill product roadmap,root
+Thor,root
+about Yggdrasill,root
+Bifröst,root
+Thor product roadmap,root
+checklist_maker,root
+checklist_processor,root
+exercise_history_table,root
+workout_planner,root
+Generate shopping list,root
+Seiðrún - Version 0,root
+Seiðrún,root
+Software,root
+Feature 3 - automate parent relationship creation,root
+Feature 2 - Automate Workout Creation,root
+Feature 4 - Simplify Workout Logging,Feature 5 - Exercise History Database
+Feature 5 - Exercise History Database,root
+Feature 6 - Filterable Trees,root
+Workout Planning,root
+about,root
+product_root,root
+BIF-P-02a - Weekly Review & Retro,root
+SW-P-3 Looking for stuff,root
+Ex-P-01a Create workout of the day,root
+SW-P-2 User Story Planning,root
+BIF- procedure index,root
+COO-P-00 - Create Weekly Meal Plan,root
+BIF-P-01 - Daily Task Planning,root
+BIF-P-00 - Standard Weekday Routine,root
+BIF-P-03 - Monthly Planning,root
+Procedure 2 - Create workout plan,root
+FIN-P-01 - Payday Procedure,root
+SW-P-01a - iPad git operations,root
+Ex-P-02 Create Weekly Exercise Plan,root
+SW-P-1 Release Planning,root
+SW-2 Obsidian Sanitization,root
+BIF-P-01b - Next Day Task Prioritization and Scheduling,root
+BIF-P-01a - Daily Task Logging,root
+COO-P-03 - Grocery Shop,root
+Ex-P-01b Log Workout of the Day,root
+Start Streamlit App,root
+COO-P-01 - Recipe Selection,root
+SW-P-04 Commit and Push Changes,root
+Ex-P-03 Review and Create Monthly Plan,root
+FIN-P-02 - Banking Log Export,root
+"BIF-P-02 - Weekly Retro, Review, Planning",root
+SW-1 Closing work for the day,root
+COO-P-02 - Create Shopping List,root
+BIF-P-02b - Weekly Task Selection,root
+Start Spyder,root
+Roadmap Refinement process - ChatGPT,root
+Ex-P-01a Create workout of the day - Version 0p0,Thor - Version 0p1
+Thor - Version 0p2,Thor - Version 0p1
+Ex-P-01b Log Workout of the Day - Version 0.0,Thor - Version 0p1
+Ex-P-01b Log Workout of the Day - Version 0.1,Thor - Version 0p2
+Thor - Version 0p1,root

@@ -1,0 +1,10 @@
+trip_id,name,country,distance,cultural_rank,completed,kayak_required,kayak_prev_id,paraglide_required,paraglide_prev_id,ski_required,ski_prev_id
+T001,Local Lake Paddle,USA,15,8,TRUE,TRUE,,FALSE,,FALSE,
+T002,Intermediate River,USA,120,7,FALSE,TRUE,T001,FALSE,,FALSE,
+T003,Argentina Expedition,Argentina,6200,1,FALSE,TRUE,T002,FALSE,,FALSE,
+T004,Italy Cultural Tour,Italy,6000,2,FALSE,FALSE,,FALSE,,FALSE,
+T005,Norway Fjords,Norway,5100,3,FALSE,TRUE,T002,FALSE,,FALSE,
+T006,Frontier Ridge Hike,Chile,5800,6,FALSE,FALSE,,FALSE,,TRUE,
+T007,Glacier Approach (Ski),Chile,5900,5,FALSE,FALSE,,FALSE,,TRUE,T006
+T008,Paragliding Hills,USA,200,9,TRUE,FALSE,,TRUE,,FALSE,
+T009,High Alpine Paraglide,France,6100,4,FALSE,FALSE,,TRUE,T008,FALSE,

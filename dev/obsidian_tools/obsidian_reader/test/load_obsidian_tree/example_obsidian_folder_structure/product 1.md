@@ -1,0 +1,4 @@
+---
+status: new
+type: product
+---

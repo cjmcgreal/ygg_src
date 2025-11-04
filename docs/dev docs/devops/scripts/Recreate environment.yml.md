@@ -1,0 +1,1 @@
+todo: find conda commands to recreate this from an existing environment

@@ -1,0 +1,71 @@
+__filename,parent,type
+Bash,SW Skills,folder
+Bright Protein Eggs,Protein Eggs,folder
+con-ex-metrics,Exercise,folder
+con-ex-pro-mon-future,con-ex-pro-monthly,folder
+con-ex-pro-monthly,con-ex-programs,folder
+con-ex-pro-weekly,con-ex-programs,folder
+con-ex-programs,Exercise,folder
+con-ex-sets,Exercise,folder
+Conrad,users,folder
+Conrad SW Products Yggdrasill,SW Products,folder
+Conrad SW Products Yggdrasill Components,Conrad SW Products Yggdrasill,folder
+Cooking,Conrad,folder
+Exercise,Conrad,folder
+features,hlidskjalf,folder
+goals,Cooking,folder
+hlidskjalf,Ygg Components,folder
+HMP,SW Products,folder
+MATLAB,SW Skills,folder
+Obsidian,SW Skills,folder
+products,root,folder
+Professional,Conrad,folder
+Protein Eggs,recipes,folder
+Python,SW Skills,folder
+recipes,Cooking,folder
+root,,folder
+skills,root,folder
+Software,Conrad,folder
+SW Products,Software,folder
+SW Skills,Software,folder
+tasks,features,folder
+tasks,root,folder
+users,root,folder
+versions,Protein Eggs,folder
+Ygg,Yggdrasill,folder
+Ygg Components,Yggdrasill,folder
+Ygg Versions,Yggdrasill,folder
+Yggdrasill,products,folder
+a prerequisite task,tasks,note
+a task,tasks,note
+about,Conrad SW Products Yggdrasill,note
+about,HMP,note
+bifrost,Conrad SW Products Yggdrasill Components,note
+Bright Protein Muffins with Goat Cheese and Lemon_v1,Bright Protein Eggs,note
+Bright Protein Muffins with Goat Cheese and Lemon_v2,Bright Protein Eggs,note
+Bright Protein Muffins with Goat Cheese and Lemon_v3,Bright Protein Eggs,note
+Butter Chicken Marinade,recipes,note
+Cooking Goal 1 - Don't die of boredom,goals,note
+Cooking Goal 2 - Eat healthy,goals,note
+Cooking Goal 3 - Whiskey Sour Night,goals,note
+Cooking Goal 4 - Host a Dinner Party,goals,note
+Cooking Goals,goals,note
+Cooking Recipes,recipes,note
+Finance,Conrad,note
+Harissa Chicken,recipes,note
+hlidskjalf,Conrad SW Products Yggdrasill Components,note
+Inspiration - ChatGPT,Protein Eggs,note
+mimisbrunnr,Conrad SW Products Yggdrasill Components,note
+Music,Conrad,note
+Protein Eggs,recipes,note
+Protein Eggs - Background,Protein Eggs,note
+Runestone Description - bright_protein_muffin_v1,Protein Eggs,note
+Social Media,Conrad,note
+Social Media 2,Conrad,note
+Strategic Cooking Goals,goals,note
+Tactical Cooking Goals,goals,note
+Tango,Conrad,note
+Task Management,Conrad,note
+Travel,Conrad,note
+Versions - ChatGPT,Protein Eggs,note
+ygg hlid feat task 1,tasks,note

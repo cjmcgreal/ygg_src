@@ -1,0 +1,14 @@
+filename,parent,other
+product 1,,yes
+about,product 1,no
+component 1,product 1,yes
+component 2,product 1,yes
+surfacing,product 1,yes
+user story 1,product 1,no
+feature 1,component 1,no
+feature 2,component 2,no
+task 1,feature 1,yes
+task 2,feature 1,yes
+task 3,feature 1,yes
+task 4,feature 1,no
+worklog entry 1,task 1,no

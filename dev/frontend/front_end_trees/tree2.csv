@@ -1,0 +1,11 @@
+__filename,parent,type
+root,,folder
+template-software-product-root,root,folder
+root-sw-prod-about,template-software-product-root,note
+root-sw-prod-docs,template-software-product-root,note
+root-sw-prod-features,template-software-product-root,note
+root-sw-prod-goals,template-software-product-root,note
+root-sw-prod-procedures,template-software-product-root,note
+root-sw-prod-releases,template-software-product-root,note
+root-sw-prod-user_stories,template-software-product-root,note
+root-sw-prod-versions,template-software-product-root,note

@@ -1,0 +1,161 @@
+__filename,parent,type
+Bright,Protein Eggs,folder
+Conrad,users,folder
+Culinary,Conrad,folder
+domains,root,folder
+Exercise,Conrad,folder
+far_future,root,folder
+features,root,folder
+goals,Culinary,folder
+pain_points,root,folder
+procedures,root,folder
+Protein Eggs,recipes,folder
+recipes,Culinary,folder
+releases,root,folder
+root,,folder
+roots,root,folder
+Seiðrún,Yggdrasill,folder
+solutioning,root,folder
+solver,Yggdrasill,folder
+tasks,root,folder
+testing,Yggdrasill,folder
+Thor,Yggdrasill,folder
+user_stories,root,folder
+users,root,folder
+versions,root,folder
+Yggdrasill,root,folder
+a prerequisite task,tasks,note
+a task,tasks,note
+about,releases,note
+about Yggdrasill,Yggdrasill,note
+Alexa integration,far_future,note
+Automate Kitchen Inventory,far_future,note
+Bagel with Lox,recipes,note
+BIF- procedure index,procedures,note
+BIF-P-00 - Standard Weekday Routine,procedures,note
+BIF-P-01 - Daily Task Planning,procedures,note
+BIF-P-01a - Daily Task Logging,procedures,note
+BIF-P-01b - Next Day Task Prioritization and Scheduling,procedures,note
+"BIF-P-02 - Weekly Retro, Review, Planning",procedures,note
+BIF-P-02a - Weekly Review & Retro,procedures,note
+BIF-P-02b - Weekly Task Selection,procedures,note
+BIF-P-03 - Monthly Planning,procedures,note
+Bifröst,Yggdrasill,note
+Breakfast Burrito (potatoes),recipes,note
+Bright Protein Eggs,Protein Eggs,note
+Bright Protein Muffins with Goat Cheese and Lemon_v1,Bright,note
+Bright Protein Muffins with Goat Cheese and Lemon_v2,Bright,note
+Bright Protein Muffins with Goat Cheese and Lemon_v3,Bright,note
+Butter Chicken Marinade,recipes,note
+Chat-monitoring agent,far_future,note
+checklist_maker,Thor,note
+checklist_processor,Thor,note
+Chicken Thighs with skin,recipes,note
+cicd tasks,testing,note
+COO-P-00 - Create Weekly Meal Plan,procedures,note
+COO-P-01 - Recipe Selection,procedures,note
+COO-P-02 - Create Shopping List,procedures,note
+COO-P-03 - Grocery Shop,procedures,note
+Cooking,Culinary,note
+Cooking Goal 1 - Don't die of boredom,goals,note
+Cooking Goal 2 - Eat healthy,goals,note
+Cooking Goal 3 - Whiskey Sour Night,goals,note
+Cooking Goal 4 - Host a Dinner Party,goals,note
+Cooking Goals,goals,note
+Cooking Recipes,recipes,note
+Cottage Cheese Crust Pizza,recipes,note
+Create Saturday Workout Obsidian Template,tasks,note
+Create WoD browser checklist from database,tasks,note
+Ex-P-01a Create workout of the day,procedures,note
+Ex-P-01a Create workout of the day - Version 0p0,versions,note
+Ex-P-01b Log Workout of the Day,procedures,note
+Ex-P-01b Log Workout of the Day - Version 0.0,versions,note
+Ex-P-01b Log Workout of the Day - Version 0.1,versions,note
+Ex-P-02 Create Weekly Exercise Plan,procedures,note
+Ex-P-03 Review and Create Monthly Plan,procedures,note
+Exercise,Exercise,note
+exercise_history_table,Thor,note
+Feature 2 - Automate Workout Creation,features,note
+Feature 3 - automate parent relationship creation,features,note
+Feature 4 - Simplify Workout Logging,features,note
+Feature 5 - Exercise History Database,features,note
+Feature 6 - Filterable Trees,features,note
+FIN-P-01 - Payday Procedure,procedures,note
+FIN-P-02 - Banking Log Export,procedures,note
+Finance,Conrad,note
+Generate shopping list,Seiðrún,note
+Harissa Chicken,recipes,note
+Healthy Slaw,recipes,note
+Hlíðskjálf,Yggdrasill,note
+Inspiration - ChatGPT,Protein Eggs,note
+Interface with humanoid robots,far_future,note
+Lamb Kofta Kebab,recipes,note
+Music,Conrad,note
+Mímisbrunnr,Yggdrasill,note
+Oatmeal,recipes,note
+Obsidian Reader,Yggdrasill,note
+Plan for exercise db rollout,tasks,note
+PM-P-1 Roadmap Refinement process - ChatGPT,procedures,note
+product_root,roots,note
+Protein Eggs,recipes,note
+Protein Eggs - Background,Protein Eggs,note
+Protein Waffles,recipes,note
+Runestone Description - bright_protein_muffin_v1,Protein Eggs,note
+Runestones,Yggdrasill,note
+Seiðrún,Seiðrún,note
+Seiðrún - Version 0,Seiðrún,note
+Skyr smoothie,recipes,note
+Social Media,Conrad,note
+Software,domains,note
+Solutioning - ChatGPT,solutioning,note
+solver,solver,note
+solver roadmap,solver,note
+Strategic Cooking Goals,goals,note
+Streamlit fetch data from FastAPI,tasks,note
+SW-P-01 Start Spyder,procedures,note
+SW-P-01a - iPad git operations,procedures,note
+SW-P-04 Commit and Push Changes,procedures,note
+SW-P-1 Closing work for the day,procedures,note
+SW-P-1 Release Planning,procedures,note
+SW-P-2 Obsidian Sanitization,procedures,note
+SW-P-2 User Story Planning,procedures,note
+SW-P-3 Looking for stuff,procedures,note
+SW-P-5 Start Streamlit App,procedures,note
+Tactical Cooking Goals,goals,note
+Tango,Conrad,note
+Task Management,Conrad,note
+test containerization ethos - chatgpt,testing,note
+test strategy and ethos - chatgpt,testing,note
+test tracing - chatgpt,testing,note
+test tracing ethos - chatgpt,testing,note
+Thai Peanut Chicken - Airfry,recipes,note
+Thor,Yggdrasill,note
+Thor - Version 0p1,versions,note
+Thor - Version 0p2,versions,note
+Thor product roadmap,Thor,note
+Travel,Conrad,note
+User Pain Point 1 - Easy shopping list creation,pain_points,note
+User Pain Point 1 - Mapping New Notes on Task Creation,pain_points,note
+User Pain Point 10 - Rotation of Accessories,pain_points,note
+User Pain Point 11 - Dependent Task Scheduling,pain_points,note
+User Pain Point 12 - Credit Card Hacking,pain_points,note
+User Pain Point 13 - Financial Statusing,pain_points,note
+User Pain Point 14 - PM Task Decomposition,pain_points,note
+User Pain Point 15 - Procedures Management,pain_points,note
+User Pain Point 16 - Music Formats,pain_points,note
+User Pain Point 2 - Shopping list organization,pain_points,note
+User Pain Point 3 - Store path planning,pain_points,note
+User Pain Point 4 - Planning workouts,pain_points,note
+User Pain Point 5 - Progress monitoring,pain_points,note
+User Pain Point 6 - Task Selection Display,pain_points,note
+User Pain Point 7 - Ease of logging workouts,pain_points,note
+User Pain Point 8 - ChatGPT Searchability,pain_points,note
+User Pain Point 9 - Strategic Gym Programming,pain_points,note
+Verify Streamlit Checklist Path,tasks,note
+Versions - ChatGPT,Protein Eggs,note
+Workout Planning,releases,note
+workout_planner,Thor,note
+Yggdrasill,Yggdrasill,note
+Yggdrasill - Cloud Rollout,far_future,note
+yggdrasill far future,far_future,note
+yggdrasill product roadmap,Yggdrasill,note

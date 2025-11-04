@@ -1,0 +1,7 @@
+task_unique_id,short_name,description,status,due_date,planned_date,product_parent,task_parent,task_size_points,blocks,blocked_by
+task001,Setup DB,Initialize database with schema,in_work,2025-09-15,2025-09-12,backend,infra,2,,task003
+task002,Login UI,Create login page with form,proposed,2025-09-18,2025-09-14,frontend,ui,3,task001,
+task003,Auth Logic,Implement JWT auth system,in_work,2025-09-16,2025-09-13,backend,auth,5,,task001
+task004,API Docs,Write OpenAPI specs,done,2025-09-10,2025-09-09,docs,infra,1,,
+task005,Unit Tests,Write unit tests for planner,in_work,2025-09-20,2025-09-16,test,coverage,3,task003,
+task006,Data Viz,Add dashboard for analytics,proposed,2025-09-25,2025-09-22,frontend,viz,4,,task005

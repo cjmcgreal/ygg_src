@@ -1,0 +1,8 @@
+name,parent
+Feature 2 - Automate Workout Creation,User Pain Point 4 - Logging and planning workouts
+Feature 4 - Simplify Workout Logging,User Pain Point 7 - Ease of logging workouts
+Generate shopping list,Pain Point 1 - Easy shopping list creation
+Pain Point 1 - Easy shopping list creation,root
+root,
+User Pain Point 4 - Logging and planning workouts,root
+User Pain Point 7 - Ease of logging workouts,root

@@ -1,0 +1,98 @@
+name,parent
+[[BIF-P-01 - Daily Task Planning]],root
+"[[BIF-P-02 - Weekly Retro, Review, Planning]]",root
+[[BIF-P-03 - Monthly Planning]],root
+[[Domains/Software/yggdrasill/components/Mímisbrunnr/Mímisbrunnr]],root
+[[Hlíðskjálf - Product Root]],root
+[[Software - Product Root]],root
+[[Task Management Goals]],root
+[[Travel - User Story Root]],root
+about,Yggdrasill
+Bagel with Lox,Cooking Recipes
+BIF- procedure index,[[Domains/Software/yggdrasill/components/Mímisbrunnr/Mímisbrunnr]]
+BIF-P-00 - Standard Weekday Routine,[[Task Management Goals]]
+BIF-P-01 - Daily Task Planning,"[[BIF-P-02 - Weekly Retro, Review, Planning]]"
+BIF-P-01a - Daily Task Logging,[[BIF-P-01 - Daily Task Planning]]
+"BIF-P-02 - Weekly Retro, Review, Planning",[[BIF-P-03 - Monthly Planning]]
+BIF-P-02b - Weekly Task Selection,"[[BIF-P-02 - Weekly Retro, Review, Planning]]"
+Bifröst,Yggdrasill
+Breakfast Burrito (potatoes),Cooking Recipes
+Bright Protein Eggs,Protein Eggs
+Bright Protein Muffins with Goat Cheese and Lemon_v1,Bright Protein Eggs
+Bright Protein Muffins with Goat Cheese and Lemon_v2,Bright Protein Eggs
+Bright Protein Muffins with Goat Cheese and Lemon_v3,Bright Protein Eggs
+Butter Chicken Marinade,Cooking Recipes
+Chicken Thighs with skin,Cooking Recipes
+Conrad,root
+Cooking,Conrad
+Cooking Goal 1 - Don't die of boredom,Strategic Cooking Goals
+Cooking Goal 2 - Eat healthy,Strategic Cooking Goals
+Cooking Goal 3 - Whiskey Sour Night,Tactical Cooking Goals
+Cooking Goal 4 - Host a Dinner Party,Tactical Cooking Goals
+Cooking Goals,Cooking
+Cooking Recipes,Cooking
+Cottage Cheese Crust Pizza,Cooking Recipes
+Create Saturday Workout Obsidian Template,Thor - Version 0p1
+Ex-P-01a Create workout of the day - Version 0p0,Procedure 2 - Create workout plan
+Ex-P-01b Log Workout of the Day,Thor
+Ex-P-01b Log Workout of the Day - Version 0.0,Procedure 1 - Log a workout
+Ex-P-01b Log Workout of the Day - Version 0.1,Procedure 1 - Log a workout
+Exercise,Conrad
+Feature 1 - generate shopping list,Seiðrún
+Feature 2 - Automate Workout Creation,Thor
+Feature 3 - automate parent relationship creation,Obsidian Reader
+Feature 4 - Simplify Workout Logging,Thor
+Feature 5 - Exercise History Database,Mímisbrunnr
+Finance,Conrad
+Harissa Chicken,Cooking Recipes
+Healthy Slaw,Cooking Recipes
+Hlíðskjálf,Yggdrasill
+Inspiration - ChatGPT,Protein Eggs
+Lamb Kofta Kebab,Cooking Recipes
+Music,Conrad
+Mímisbrunnr,Yggdrasill
+Oatmeal,Cooking Recipes
+Obsidian Reader,Yggdrasill
+PP-1 Mapping New Notes on Task Creation,Task Management
+PP-2 Task Selection Display,Task Management
+Procedure 1 - Log a workout,root
+Procedure 2 - Create workout plan,Thor
+Protein Eggs,Cooking Recipes
+Protein Eggs - Background,Protein Eggs
+Protein Waffles,Cooking Recipes
+python,root
+root,
+Runestone Description - bright_protein_muffin_v1,Protein Eggs
+Seiðrún,Yggdrasill
+Seiðrún - Version 0,Seiðrún
+Skyr smoothie,Cooking Recipes
+Social Media,Conrad
+software,root
+Solutioning - ChatGPT,User Pain Point 4 - Logging and planning workouts
+Start Spyder,python
+Start Streamlit App,[[Hlíðskjálf - Product Root]]
+Strategic Cooking Goals,Cooking Goals
+SW-1 Closing work for the day,[[Travel - User Story Root]]
+SW-P-01a - iPad git operations,[[Software - Product Root]]
+SW-P-1 Release Planning,software
+SW-P-3 Looking for stuff,yggdrasill
+Tactical Cooking Goals,Cooking Goals
+Tango,Conrad
+Task Management,Conrad
+Thai Peanut Chicken - Airfry,Cooking Recipes
+Thor,Yggdrasill
+Thor - Version 0p1,Thor
+Thor - Version 0p2,Thor
+Travel,Conrad
+User Pain Point 1 - Easy shopping list creation,Cooking
+User Pain Point 2 - Shopping list organization,Cooking
+User Pain Point 3 - Store path planning,Cooking
+User Pain Point 4 - Logging and planning workouts,Exercise
+User Pain Point 5 - Progress monitoring,Exercise
+Verify Streamlit Checklist Path,Feature 4 - Simplify Workout Logging
+Versions - ChatGPT,Protein Eggs
+Workout Planning,User Pain Point 4 - Logging and planning workouts
+workout_planner,Thor
+yggdrasill,root
+Yggdrasill,root
+Yggdrasill - Cloud Rollout,Yggdrasill
