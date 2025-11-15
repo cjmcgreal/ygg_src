@@ -11,8 +11,10 @@ import random
 
 def get_data_path():
     """Get the path to the shared data directory."""
+    # Point to the consolidated data folder at the domain root
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(current_dir, 'shared_data')
+    finance_root = os.path.dirname(os.path.dirname(current_dir))
+    return os.path.join(finance_root, 'data')
 
 
 def load_transactions():
