@@ -908,8 +908,8 @@ def render_history():
 
     with col2:
         # Get unique workout dates
-        if 'workout_date' in history_df.columns:
-            unique_dates = history_df['workout_date'].dt.date.nunique()
+        if 'start_time' in history_df.columns:
+            unique_dates = history_df['start_time'].dt.date.nunique()
             st.metric("Training Days", unique_dates)
 
     with col3:
@@ -931,11 +931,13 @@ def render_history():
         workout_name = workout['name'] if workout is not None else 'Unknown'
 
         # Format date
-        workout_date = log['workout_date'].strftime('%Y-%m-%d %H:%M') if pd.notna(log['workout_date']) else 'N/A'
+        workout_date = log['start_time'].strftime('%Y-%m-%d %H:%M') if pd.notna(log['start_time']) else 'N/A'
 
         # Get metadata if available
-        duration = log.get('duration_minutes', 'N/A')
-        total_volume = log.get('total_volume_lbs', 'N/A')
+        duration = log.get('duration_seconds', 'N/A')
+        if duration != 'N/A' and pd.notna(duration):
+            duration = int(duration / 60)  # Convert seconds to minutes
+        total_volume = log.get('total_volume', 'N/A')
 
         display_data.append({
             'Date': workout_date,
@@ -1095,6 +1097,91 @@ def render_log_old_workout():
 
 
 # ============================================================================
+# RENDER: ABOUT
+# ============================================================================
+
+def render_about():
+    """Render the About/Documentation page"""
+
+    st.title("💪 Exercise Tracker")
+    st.write("Welcome to your personal workout tracking and progression system!")
+
+    st.markdown("""
+    ## Features
+
+    - **Intelligent Progression**: Automatically calculates next workout parameters based on performance history
+    - **Flexible Schemes**: Supports two distinct progression methodologies (rep range and linear weight)
+    - **1RM-Based Planning**: Uses one-rep max estimation to determine appropriate training loads
+    - **Warmup Set Generation**: Automatically generates warmup sets based on working set intensity
+    - **Comprehensive Tracking**: Records all workout data with detailed metadata
+    - **Historical Logging**: Backfill past workouts to build your training history
+
+    ## Getting Started
+
+    ### 1. Create Exercises (Exercise Library Tab)
+    - Define exercises with progression schemes (rep range or linear weight)
+    - Configure warmup sets for compound movements
+    - Set weight increments for progressive overload
+
+    ### 2. Build Workout Templates (Create Workout Tab)
+    - Combine exercises into workout routines
+    - Exercises will be performed in the order selected
+    - Add notes for workout-specific guidance
+
+    ### 3. Execute Workouts (Workout Overview Tab)
+    - Select a workout template to begin
+    - App generates appropriate sets based on your history
+    - Track performance in real-time during execution
+
+    ### 4. Review Progress (History Tab)
+    - View completed workouts and statistics
+    - Track volume, 1RM estimates, and training frequency
+    - Analyze your progression over time
+
+    ## Progression Logic
+
+    ### Rep Range Progression
+    - Start at minimum reps (e.g., 8 reps with 135 lbs)
+    - Add 1 rep each successful workout (9, 10, 11, 12...)
+    - When you hit max reps, increase weight and reset to min reps
+    - Example: 135×12 → 140×8
+
+    ### Linear Weight Progression
+    - Fixed number of reps per set (e.g., always 5 reps)
+    - Add weight each successful workout (e.g., +5 lbs)
+    - If you fail, repeat the same weight next time
+    - Example: 225×5 → 230×5 → 235×5
+
+    ### Warmup Sets
+    Automatically generated based on working set intensity:
+    - **Low intensity (0-50% 1RM)**: 1 warmup set
+    - **Medium intensity (50-70% 1RM)**: 2 warmup sets
+    - **High intensity (70-100% 1RM)**: 3 warmup sets
+
+    Default warmup percentages: 40%, 60%, 80% of working weight
+
+    ## Tips for Success
+
+    - **Create exercises first** before building workouts
+    - **Enable warmup sets** for heavy compound movements
+    - **Be consistent** with tracking to ensure accurate progression
+    - **Use rep range** for hypertrophy (8-12 reps)
+    - **Use linear weight** for strength (3-5 reps)
+    - **Log old workouts** to build your training history
+
+    ## Data Storage
+
+    All data is stored locally in CSV files in the `data/` directory. Your data includes:
+    - Exercise library definitions
+    - Workout templates
+    - Workout logs (completed sessions)
+    - Set logs (individual set performance)
+
+    To backup your data, simply copy the `data/` folder.
+    """)
+
+
+# ============================================================================
 # MAIN RENDER FUNCTION
 # ============================================================================
 
@@ -1114,13 +1201,14 @@ def render_exercise_app():
         st.session_state['active_tab'] = 2  # Workout Overview tab
 
     # Create tabs for navigation
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "📚 Exercise Library",
         "🏋️ Create Workout",
         "📊 Workout Overview",
         "💪 Workout Execution",
         "📈 History",
-        "📝 Log Old Workout"
+        "📝 Log Old Workout",
+        "ℹ️ About"
     ])
 
     with tab1:
@@ -1140,3 +1228,6 @@ def render_exercise_app():
 
     with tab6:
         render_log_old_workout()
+
+    with tab7:
+        render_about()

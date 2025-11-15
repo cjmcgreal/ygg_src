@@ -396,6 +396,11 @@ def query_workout_logs(
 # SET LOGS
 # ============================================================================
 
+def get_all_set_logs() -> pd.DataFrame:
+    """Get all set logs"""
+    return load_table("set_logs")
+
+
 def get_set_logs_for_workout(workout_log_id: int) -> List[Dict[str, Any]]:
     """
     Get all set logs for a workout
