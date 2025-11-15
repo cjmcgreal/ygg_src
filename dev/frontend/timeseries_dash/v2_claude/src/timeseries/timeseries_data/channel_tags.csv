@@ -1,0 +1,13 @@
+channel_name,hierarchy,category,unit,description
+building_a_hvac_temperature,Building A/HVAC/Temperature,temperature,°C,HVAC system temperature sensor for Building A
+building_a_hvac_humidity,Building A/HVAC/Humidity,humidity,%,HVAC system humidity sensor for Building A
+building_a_power_consumption,Building A/Power/Consumption,power,kW,Total power consumption for Building A
+building_b_hvac_temperature,Building B/HVAC/Temperature,temperature,°C,HVAC system temperature sensor for Building B
+building_b_hvac_humidity,Building B/HVAC/Humidity,humidity,%,HVAC system humidity sensor for Building B
+building_b_power_consumption,Building B/Power/Consumption,power,kW,Total power consumption for Building B
+factory_line1_speed,Factory/Production Line 1/Speed,production,units/hr,Production speed for Line 1
+factory_line1_temperature,Factory/Production Line 1/Temperature,temperature,°C,Operating temperature for Line 1
+factory_line2_speed,Factory/Production Line 2/Speed,production,units/hr,Production speed for Line 2
+factory_line2_temperature,Factory/Production Line 2/Temperature,temperature,°C,Operating temperature for Line 2
+warehouse_inventory_count,Warehouse/Inventory/Count,inventory,units,Current inventory count in warehouse
+warehouse_env_temperature,Warehouse/Environmental/Temperature,temperature,°C,Ambient temperature in warehouse

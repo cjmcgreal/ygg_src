@@ -1,0 +1,28 @@
+task_assignments:
+  - task_group: "Task Group 1: Project Structure and CSV Data Files"
+    assigned_subagent: "database-engineer"
+    rationale: "Setting up CSV data files and database structure"
+
+  - task_group: "Task Group 2: CSV Database Operations"
+    assigned_subagent: "database-engineer"
+    rationale: "Implementing CSV database layer with CRUD operations"
+
+  - task_group: "Task Group 3: Validation and Business Rules"
+    assigned_subagent: "api-engineer"
+    rationale: "Business logic validation and scoring functions"
+
+  - task_group: "Task Group 4: Solver Algorithm Implementation"
+    assigned_subagent: "api-engineer"
+    rationale: "Core algorithm implementation for solvers"
+
+  - task_group: "Task Group 5: Workflow Layer"
+    assigned_subagent: "api-engineer"
+    rationale: "Orchestration layer connecting all components"
+
+  - task_group: "Task Group 6: UI Implementation"
+    assigned_subagent: "ui-designer"
+    rationale: "Streamlit interface with all 4 tabs"
+
+  - task_group: "Task Group 7: Integration Testing and Final Polish"
+    assigned_subagent: "testing-engineer"
+    rationale: "Comprehensive testing and integration validation"
