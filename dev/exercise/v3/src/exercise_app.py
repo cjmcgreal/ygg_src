@@ -57,6 +57,14 @@ def render_exercise_library():
     with col_form:
         st.subheader("Create New Exercise")
 
+        # Progression scheme OUTSIDE form for dynamic updates
+        progression_scheme = st.radio(
+            "Progression Scheme *",
+            options=["Rep Range", "Linear Weight", "Linear Reps"],
+            help="Rep Range: Add reps until max, then add weight. Linear Weight: Add weight each workout. Linear Reps: Add reps each workout.",
+            key="exercise_progression_scheme"
+        )
+
         with st.form("exercise_form", clear_on_submit=True):
             # Exercise name (required)
             exercise_name = st.text_input(
@@ -86,13 +94,6 @@ def render_exercise_library():
                 help="Select any secondary muscle groups"
             )
 
-            # Progression scheme
-            progression_scheme = st.radio(
-                "Progression Scheme *",
-                options=["Rep Range", "Linear Weight"],
-                help="Rep Range: Add reps until max, then add weight. Linear Weight: Add weight each workout."
-            )
-
             # Conditional inputs based on progression scheme
             if progression_scheme == "Rep Range":
                 col_min, col_max = st.columns(2)
@@ -113,7 +114,16 @@ def render_exercise_library():
                         help="Maximum reps in the range"
                     )
                 target_reps = None
-            else:  # Linear Weight
+                rep_increment = None
+                weight_increment = st.number_input(
+                    "Weight Increment (lbs) *",
+                    min_value=0.5,
+                    max_value=50.0,
+                    value=5.0,
+                    step=0.5,
+                    help="Amount to increase weight on successful workout"
+                )
+            elif progression_scheme == "Linear Weight":
                 target_reps = st.number_input(
                     "Target Reps",
                     min_value=1,
@@ -123,16 +133,33 @@ def render_exercise_library():
                 )
                 rep_range_min = None
                 rep_range_max = None
-
-            # Weight increment
-            weight_increment = st.number_input(
-                "Weight Increment (lbs) *",
-                min_value=0.5,
-                max_value=50.0,
-                value=5.0,
-                step=0.5,
-                help="Amount to increase weight on successful workout"
-            )
+                rep_increment = None
+                weight_increment = st.number_input(
+                    "Weight Increment (lbs) *",
+                    min_value=0.5,
+                    max_value=50.0,
+                    value=5.0,
+                    step=0.5,
+                    help="Amount to increase weight on successful workout"
+                )
+            else:  # Linear Reps
+                target_reps = st.number_input(
+                    "Starting Reps",
+                    min_value=1,
+                    max_value=50,
+                    value=5,
+                    help="Starting number of reps for each set"
+                )
+                rep_range_min = None
+                rep_range_max = None
+                rep_increment = st.number_input(
+                    "Rep Increment *",
+                    min_value=1,
+                    max_value=10,
+                    value=1,
+                    help="Number of reps to add each successful workout"
+                )
+                weight_increment = None
 
             # Warmup sets toggle
             enable_warmup = st.checkbox(
@@ -168,16 +195,25 @@ def render_exercise_library():
                 elif progression_scheme == "Rep Range" and rep_range_min >= rep_range_max:
                     st.error("Min reps must be less than max reps")
                 else:
+                    # Map UI progression scheme to database value
+                    if progression_scheme == "Rep Range":
+                        prog_scheme_db = "rep_range"
+                    elif progression_scheme == "Linear Weight":
+                        prog_scheme_db = "linear_weight"
+                    else:  # Linear Reps
+                        prog_scheme_db = "linear_reps"
+
                     # Build exercise data dictionary
                     exercise_data = {
                         "name": exercise_name.strip(),
                         "description": description.strip(),
                         "primary_muscle_groups": ",".join([m.lower() for m in primary_muscles]),
                         "secondary_muscle_groups": ",".join([m.lower() for m in secondary_muscles]) if secondary_muscles else "",
-                        "progression_scheme": "rep_range" if progression_scheme == "Rep Range" else "linear_weight",
+                        "progression_scheme": prog_scheme_db,
                         "rep_range_min": rep_range_min,
                         "rep_range_max": rep_range_max,
                         "target_reps": target_reps,
+                        "rep_increment": rep_increment,
                         "weight_increment": weight_increment,
                         "warmup_config": warmup_config
                     }

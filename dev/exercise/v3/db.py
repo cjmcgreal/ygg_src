@@ -28,7 +28,7 @@ def get_schema(table_name: str) -> List[str]:
             "id", "name", "description", "primary_muscle_groups",
             "secondary_muscle_groups", "progression_scheme",
             "rep_range_min", "rep_range_max", "target_reps",
-            "weight_increment", "created_at", "warmup_config"
+            "rep_increment", "weight_increment", "created_at", "warmup_config"
         ],
         "workouts": [
             "id", "name", "exercise_ids", "created_at", "notes"
@@ -132,7 +132,8 @@ def create_exercise(
     rep_range_min: Optional[int] = None,
     rep_range_max: Optional[int] = None,
     target_reps: Optional[int] = None,
-    weight_increment: float = 5.0,
+    rep_increment: Optional[int] = None,
+    weight_increment: Optional[float] = None,
     warmup_config: Optional[str] = None
 ) -> int:
     """
@@ -143,11 +144,12 @@ def create_exercise(
         description: Optional description
         primary_muscle_groups: Comma-separated muscle groups
         secondary_muscle_groups: Comma-separated muscle groups
-        progression_scheme: Either "rep_range" or "linear_weight"
+        progression_scheme: Either "rep_range", "linear_weight", or "linear_reps"
         rep_range_min: Minimum reps for rep_range scheme
         rep_range_max: Maximum reps for rep_range scheme
-        target_reps: Fixed rep count for linear_weight scheme
-        weight_increment: Weight increment in lbs/kg
+        target_reps: Fixed/starting rep count for linear_weight or linear_reps scheme
+        rep_increment: Rep increment for linear_reps scheme
+        weight_increment: Weight increment in lbs/kg for rep_range and linear_weight schemes
         warmup_config: JSON string with warmup configuration
 
     Returns:
@@ -168,6 +170,7 @@ def create_exercise(
         'rep_range_min': rep_range_min,
         'rep_range_max': rep_range_max,
         'target_reps': target_reps,
+        'rep_increment': rep_increment,
         'weight_increment': weight_increment,
         'created_at': now,
         'warmup_config': warmup_config

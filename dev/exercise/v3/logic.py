@@ -189,6 +189,8 @@ def calculate_next_workout_sets(
         next_weight, next_reps = _calculate_rep_range_progression(exercise, history)
     elif progression_scheme == 'linear_weight':
         next_weight, next_reps = _calculate_linear_weight_progression(exercise, history)
+    elif progression_scheme == 'linear_reps':
+        next_weight, next_reps = _calculate_linear_reps_progression(exercise, history)
     else:
         raise ValueError(f"Unknown progression scheme: {progression_scheme}")
 
@@ -304,5 +306,45 @@ def _calculate_linear_weight_progression(
     else:
         # Failed workout, repeat weight
         next_weight = last_weight
+
+    return (next_weight, next_reps)
+
+
+def _calculate_linear_reps_progression(
+    exercise: Dict[str, Any],
+    history: Dict[str, Any]
+) -> tuple[float, int]:
+    """
+    Calculate next weight and reps for linear reps progression
+
+    Weight stays constant, reps increase by rep_increment each successful workout.
+
+    Args:
+        exercise: Exercise configuration dict
+        history: Exercise progression data
+
+    Returns:
+        Tuple of (next_weight, next_reps)
+    """
+    target_reps = exercise['target_reps']  # Starting reps
+    rep_increment = exercise['rep_increment']
+
+    # First workout - use starting reps and default weight
+    if not history['has_history']:
+        return (45.0, int(target_reps))  # Start with bar weight and starting reps
+
+    last_weight = history['last_weight']
+    last_reps = history['last_reps']
+    was_successful = history['all_working_sets_completed']
+
+    # Weight stays the same
+    next_weight = last_weight
+
+    if was_successful:
+        # Successful workout, add reps
+        next_reps = last_reps + rep_increment
+    else:
+        # Failed workout, repeat same reps
+        next_reps = last_reps
 
     return (next_weight, next_reps)

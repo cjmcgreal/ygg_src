@@ -52,6 +52,16 @@ def handle_create_exercise(exercise_data: Dict[str, Any]) -> int:
         if target_reps is None:
             raise ValueError("Linear weight progression requires target_reps")
 
+    elif progression_scheme == 'linear_reps':
+        target_reps = exercise_data.get('target_reps')
+        rep_increment = exercise_data.get('rep_increment')
+
+        if target_reps is None:
+            raise ValueError("Linear reps progression requires target_reps (starting reps)")
+
+        if rep_increment is None:
+            raise ValueError("Linear reps progression requires rep_increment")
+
     else:
         raise ValueError(f"Invalid progression scheme: {progression_scheme}")
 
@@ -65,7 +75,8 @@ def handle_create_exercise(exercise_data: Dict[str, Any]) -> int:
         rep_range_min=exercise_data.get('rep_range_min'),
         rep_range_max=exercise_data.get('rep_range_max'),
         target_reps=exercise_data.get('target_reps'),
-        weight_increment=exercise_data.get('weight_increment', 5.0),
+        rep_increment=exercise_data.get('rep_increment'),
+        weight_increment=exercise_data.get('weight_increment'),
         warmup_config=exercise_data.get('warmup_config')
     )
 
