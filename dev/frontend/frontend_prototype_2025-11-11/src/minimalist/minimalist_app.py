@@ -172,11 +172,12 @@ def render_minimalist():
 
         recent = transactions_df.sort_values('date', ascending=False).head(15).copy()
         recent['Date'] = recent['date'].dt.strftime('%b %d')
+        recent['Category'] = recent['category']
         recent['Amount'] = recent['amount'].apply(lambda x: f"${x:,.2f}")
+        recent['Type'] = recent['type'].str.capitalize()
 
         # Simple display
         display_recent = recent[['Date', 'Category', 'Amount', 'Type']].copy()
-        display_recent['Type'] = display_recent['Type'].str.capitalize()
 
         st.dataframe(
             display_recent,

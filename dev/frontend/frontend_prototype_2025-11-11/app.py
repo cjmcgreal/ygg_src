@@ -15,83 +15,52 @@ from src.timeline.timeline_app import render_timeline
 
 def main():
     """
-    Main application function with sidebar style selector.
+    Main application function with tab-based style selector.
     """
     # Page configuration
     st.set_page_config(
         page_title="Financial Dashboard Prototype",
         layout="wide",
-        initial_sidebar_state="expanded"
+        initial_sidebar_state="collapsed"
     )
 
-    # Sidebar for style selection
-    with st.sidebar:
-        st.title("Dashboard Styles")
-        st.markdown("Choose a frontend style to explore:")
-        st.markdown("---")
+    # Header
+    st.title("Financial Dashboard Prototype")
+    st.caption("All styles use the same underlying dataset of 100 financial transactions.")
+    st.markdown("")
 
-        # Style selector
-        selected_style = st.radio(
-            "Select Style:",
-            options=[
-                "Executive Dashboard",
-                "Data Table Focus",
-                "Analytics Lab",
-                "Minimalist View",
-                "Timeline Explorer"
-            ],
-            index=0
-        )
+    # Main tabs for different dashboard styles
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "📊 Executive Dashboard",
+        "📋 Data Table Focus",
+        "📈 Analytics Lab",
+        "✨ Minimalist View",
+        "📅 Timeline Explorer"
+    ])
 
-        st.markdown("---")
-
-        # Style descriptions
-        st.markdown("### Style Descriptions")
-
-        if selected_style == "Executive Dashboard":
-            st.info(
-                "**Executive Dashboard**\n\n"
-                "High-level overview with KPI cards and executive summary charts. "
-                "Perfect for quick insights and management reporting."
-            )
-        elif selected_style == "Data Table Focus":
-            st.info(
-                "**Data Table Focus**\n\n"
-                "Interactive table-centric view with advanced filtering and sorting. "
-                "Ideal for detailed data exploration and export."
-            )
-        elif selected_style == "Analytics Lab":
-            st.info(
-                "**Analytics Lab**\n\n"
-                "Advanced visualizations and statistical analysis. "
-                "For deep-dive analysis with multiple chart types and patterns."
-            )
-        elif selected_style == "Minimalist View":
-            st.info(
-                "**Minimalist View**\n\n"
-                "Clean, simple interface with essential information only. "
-                "Focus on clarity and ease of understanding."
-            )
-        elif selected_style == "Timeline Explorer":
-            st.info(
-                "**Timeline Explorer**\n\n"
-                "Chronological focus with timeline visualizations. "
-                "Navigate your finances through time with calendar and event views."
-            )
-
-        st.markdown("---")
-        st.caption("All styles use the same underlying dataset of 100 financial transactions.")
-
-    # Render selected style
-    if selected_style == "Executive Dashboard":
+    with tab1:
+        st.markdown("")
+        st.caption("High-level overview with KPI cards and executive summary charts. Perfect for quick insights and management reporting.")
         render_executive()
-    elif selected_style == "Data Table Focus":
+
+    with tab2:
+        st.markdown("")
+        st.caption("Interactive table-centric view with advanced filtering and sorting. Ideal for detailed data exploration and export.")
         render_datatable()
-    elif selected_style == "Analytics Lab":
+
+    with tab3:
+        st.markdown("")
+        st.caption("Advanced visualizations and statistical analysis. For deep-dive analysis with multiple chart types and patterns.")
         render_analytics()
-    elif selected_style == "Minimalist View":
+
+    with tab4:
+        st.markdown("")
+        st.caption("Clean, simple interface with essential information only. Focus on clarity and ease of understanding.")
         render_minimalist()
-    elif selected_style == "Timeline Explorer":
+
+    with tab5:
+        st.markdown("")
+        st.caption("Chronological focus with timeline visualizations. Navigate your finances through time with calendar and event views.")
         render_timeline()
 
 
