@@ -1,56 +1,28 @@
 """
-Exercise domain Streamlit UI component.
+Exercise App - Integration wrapper for prod environment
 
-Demonstrates domain-level tabs for organizing sub-sections within the domain.
+This file acts as the integration point between the prod app structure
+and the existing exercise module from the dev folder.
 """
-import streamlit as st
-from domains.exercise.exercise_workflow import display_exercise_data
+import sys
+import os
 
+# Add the domains/exercise directory to Python path so modules can import each other
+exercise_dir = os.path.dirname(os.path.abspath(__file__))
+if exercise_dir not in sys.path:
+    sys.path.insert(0, exercise_dir)
 
-def render_exercise_app():
-    """
-    Render the Exercise domain UI.
+# Import the main render function from the src subfolder
+from src.exercise_app import render_exercise_app
 
-    This is the main entry point for the Exercise domain,
-    called by the root app.py to display this domain's page.
-
-    Demonstrates using tabs within a domain for sub-navigation.
-    """
-    st.header("Exercise Tracker")
-
-    # Create tabs within the Exercise domain
-    tab_overview, tab_data, tab_analytics = st.tabs([
-        "Overview",
-        "Exercise Data",
-        "Analytics"
-    ])
-
-    with tab_overview:
-        st.subheader("Welcome to Exercise Tracker")
-        st.write("Track your exercises, view your progress, and analyze your performance.")
-
-        st.info("📊 This domain demonstrates using tabs within a domain for organizing content.")
-
-        # Quick stats
-        st.write("**Quick Links:**")
-        st.write("- View your exercise log in the 'Exercise Data' tab")
-        st.write("- See analytics and trends in the 'Analytics' tab")
-
-    with tab_data:
-        st.subheader("Your Exercise Log")
-        # Get and display exercise data
-        display_exercise_data()
-
-    with tab_analytics:
-        st.subheader("Analytics & Insights")
-        st.write("Analytics functionality coming soon...")
-        st.info("This tab could show charts, trends, and insights from your exercise data.")
+# Export the render function for use by the main app.py
+__all__ = ['render_exercise_app']
 
 
 if __name__ == "__main__":
-    # Standalone test - allows running this file directly
-    print("Exercise App - Standalone Test")
+    # Standalone test
+    print("Exercise App - Integration Wrapper")
     print("=" * 50)
-    print("This module contains render_exercise_app() function")
-    print("Run the main app.py to see the full UI")
-    print("\nTo test: streamlit run app.py")
+    print("This wrapper integrates the exercise module into the prod environment")
+    print("Run the main app.py to see the full integrated UI")
+    print("\nTo test: streamlit run ../../app.py")
