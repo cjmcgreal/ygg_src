@@ -970,7 +970,11 @@ def render_log_old_workout():
     st.write("Manually log a workout from the past to add it to your history.")
     st.write("---")
 
-    # Select workout and date
+    # Initialize session state for logged sets
+    if 'logged_sets' not in st.session_state:
+        st.session_state['logged_sets'] = []
+
+    # Workout Details Section
     st.subheader("1. Workout Details")
 
     col_workout, col_date = st.columns(2)
@@ -1010,90 +1014,175 @@ def render_log_old_workout():
     # Combine date and time
     workout_datetime = datetime.combine(workout_date, workout_time)
 
+    # Notes section
+    workout_notes = st.text_area(
+        "Workout Notes (Optional)",
+        placeholder="Add any notes about this workout (e.g., how you felt, PRs, modifications, etc.)",
+        help="Optional notes about the workout session"
+    )
+
     st.write("---")
+
+    # Enter Set Data Section
     st.subheader("2. Enter Set Data")
 
-    # Get workout details
-    workout_details = workflow.get_workout_details(selected_workout_id)
+    # Load all exercises for dropdown
+    exercises_df = db.get_all_exercises()
 
-    # Initialize session state for set data if needed
-    if 'old_workout_sets' not in st.session_state:
-        st.session_state['old_workout_sets'] = {}
+    if exercises_df.empty:
+        st.warning("No exercises available. Please create exercises first in the Exercise Library.")
+        return
 
-    # Display exercises and collect set data
-    for idx, exercise in enumerate(workout_details['exercises']):
-        exercise_id = exercise['id']
-        exercise_name = exercise['name']
+    # Create exercise options for dropdown
+    exercise_options = {}
+    for _, exercise in exercises_df.iterrows():
+        display_name = f"{exercise['name']}"
+        exercise_options[display_name] = {
+            'id': exercise['id'],
+            'name': exercise['name']
+        }
 
-        st.write(f"**Exercise {idx + 1}: {exercise_name}**")
+    # Form to add a single set
+    with st.form("add_set_form", clear_on_submit=True):
+        col1, col2, col3 = st.columns([3, 2, 2])
 
-        # Number of sets
-        num_sets = st.number_input(
-            f"Number of sets for {exercise_name}",
-            min_value=1,
-            max_value=20,
-            value=3,
-            key=f"num_sets_{exercise_id}"
-        )
-
-        # Collect data for each set
-        for set_num in range(1, num_sets + 1):
-            col1, col2, col3 = st.columns([1, 2, 2])
-
-            with col1:
-                st.write(f"Set {set_num}")
-
-            with col2:
-                weight = st.number_input(
-                    "Weight (lbs)",
-                    min_value=0.0,
-                    value=135.0,
-                    step=2.5,
-                    key=f"weight_{exercise_id}_{set_num}",
-                    label_visibility="collapsed"
-                )
-
-            with col3:
-                reps = st.number_input(
-                    "Reps",
-                    min_value=0,
-                    value=10,
-                    step=1,
-                    key=f"reps_{exercise_id}_{set_num}",
-                    label_visibility="collapsed"
-                )
-
-            # Store in session state
-            set_key = f"{exercise_id}_{set_num}"
-            st.session_state['old_workout_sets'][set_key] = {
-                'exercise_id': exercise_id,
-                'set_number': set_num,
-                'weight': weight,
-                'reps': reps,
-                'set_type': 'working'  # Assume all working sets for manual entry
-            }
-
-        st.write("")
-
-    # Save button
-    st.write("---")
-    if st.button("💾 Save Workout", type="primary", use_container_width=True):
-        try:
-            # Create workout log
-            workout_log_id = workflow.handle_log_old_workout(
-                workout_id=selected_workout_id,
-                workout_datetime=workout_datetime,
-                set_data=list(st.session_state['old_workout_sets'].values())
+        with col1:
+            selected_exercise_name = st.selectbox(
+                "Exercise",
+                options=list(exercise_options.keys()),
+                help="Select the exercise for this set"
             )
 
-            st.success(f"✅ Workout logged successfully! (Log ID: {workout_log_id})")
-            st.balloons()
+        with col2:
+            weight = st.number_input(
+                "Weight (lbs)",
+                min_value=0.0,
+                value=135.0,
+                step=2.5,
+                help="Weight used for this set"
+            )
 
-            # Clear session state
-            del st.session_state['old_workout_sets']
+        with col3:
+            reps = st.number_input(
+                "Reps",
+                min_value=0,
+                value=10,
+                step=1,
+                help="Reps completed"
+            )
 
-        except Exception as e:
-            st.error(f"❌ Error logging workout: {str(e)}")
+        # Notes field (optional)
+        set_notes = st.text_input(
+            "Set Notes (Optional)",
+            placeholder="e.g., 'felt easy', 'struggled on last rep', 'form breakdown'",
+            help="Optional notes about this specific set"
+        )
+
+        # Add set button
+        add_set_button = st.form_submit_button("➕ Add Set", use_container_width=True)
+
+        if add_set_button:
+            # Get exercise details
+            exercise_info = exercise_options[selected_exercise_name]
+
+            # Add set to session state
+            st.session_state['logged_sets'].append({
+                'exercise_id': exercise_info['id'],
+                'exercise_name': exercise_info['name'],
+                'weight': weight,
+                'reps': reps,
+                'set_type': 'working',
+                'notes': set_notes.strip() if set_notes else ''
+            })
+            st.rerun()
+
+    # Display logged sets
+    if st.session_state['logged_sets']:
+        st.write("---")
+        st.subheader("Logged Sets")
+
+        # Group sets by exercise
+        exercise_groups = {}
+        for idx, set_data in enumerate(st.session_state['logged_sets']):
+            exercise_name = set_data['exercise_name']
+            if exercise_name not in exercise_groups:
+                exercise_groups[exercise_name] = []
+            exercise_groups[exercise_name].append((idx, set_data))
+
+        # Display sets grouped by exercise
+        for exercise_name, sets in exercise_groups.items():
+            st.write(f"**{exercise_name}** ({len(sets)} sets)")
+
+            for set_idx, (global_idx, set_data) in enumerate(sets, start=1):
+                col1, col2, col3 = st.columns([1, 3, 1])
+
+                with col1:
+                    st.write(f"Set {set_idx}")
+
+                with col2:
+                    st.write(f"{set_data['weight']} lbs × {set_data['reps']} reps")
+                    # Show notes if they exist
+                    if set_data.get('notes'):
+                        st.caption(f"💬 {set_data['notes']}")
+
+                with col3:
+                    if st.button("🗑️", key=f"delete_{global_idx}", help="Remove this set"):
+                        st.session_state['logged_sets'].pop(global_idx)
+                        st.rerun()
+
+            st.write("")
+
+        # Clear all button
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("🗑️ Clear All Sets", use_container_width=True):
+                st.session_state['logged_sets'] = []
+                st.rerun()
+
+        # Save workout button
+        with col2:
+            if st.button("💾 Save Workout", type="primary", use_container_width=True):
+                try:
+                    # Prepare set data with set numbers per exercise
+                    set_data_by_exercise = {}
+                    for set_info in st.session_state['logged_sets']:
+                        exercise_id = set_info['exercise_id']
+                        if exercise_id not in set_data_by_exercise:
+                            set_data_by_exercise[exercise_id] = []
+                        set_data_by_exercise[exercise_id].append(set_info)
+
+                    # Add set numbers
+                    formatted_sets = []
+                    for exercise_id, sets in set_data_by_exercise.items():
+                        for set_num, set_info in enumerate(sets, start=1):
+                            formatted_sets.append({
+                                'exercise_id': exercise_id,
+                                'set_number': set_num,
+                                'weight': set_info['weight'],
+                                'reps': set_info['reps'],
+                                'set_type': set_info['set_type'],
+                                'notes': set_info.get('notes', '')
+                            })
+
+                    # Create workout log
+                    workout_log_id = workflow.handle_log_old_workout(
+                        workout_id=selected_workout_id,
+                        workout_datetime=workout_datetime,
+                        set_data=formatted_sets,
+                        notes=workout_notes
+                    )
+
+                    st.success(f"✅ Workout logged successfully! (Log ID: {workout_log_id})")
+                    st.balloons()
+
+                    # Clear session state
+                    st.session_state['logged_sets'] = []
+                    st.rerun()
+
+                except Exception as e:
+                    st.error(f"❌ Error logging workout: {str(e)}")
+    else:
+        st.info("👆 Add sets using the form above. Sets will appear here as you add them.")
 
 
 # ============================================================================

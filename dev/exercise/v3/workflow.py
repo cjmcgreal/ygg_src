@@ -353,3 +353,91 @@ def get_workout_details(workout_id: int) -> Dict[str, Any]:
     }
 
     return details
+
+
+def handle_log_old_workout(
+    workout_id: int,
+    workout_datetime: datetime,
+    set_data: List[Dict[str, Any]],
+    notes: str = ""
+) -> int:
+    """
+    Log a workout from the past with manual set data
+
+    Args:
+        workout_id: Workout template ID
+        workout_datetime: When the workout was performed
+        set_data: List of set dicts with exercise_id, set_number, weight, reps, set_type
+        notes: Optional workout notes
+
+    Returns:
+        Workout log ID
+
+    Raises:
+        ValueError: If validation fails
+    """
+    if not set_data:
+        raise ValueError("At least one set must be logged")
+
+    # Create workout log
+    workout_log_id = db.create_workout_log(
+        workout_id=workout_id,
+        start_time=workout_datetime,
+        status="completed"
+    )
+
+    # Create set logs and calculate metadata
+    total_volume = 0
+    muscle_groups = set()
+
+    for set_info in set_data:
+        # Get exercise info for metadata
+        exercise = db.get_exercise_by_id(set_info['exercise_id'])
+        if exercise:
+            muscle_groups.add(exercise['primary_muscle_groups'])
+
+        # Calculate 1RM estimate
+        one_rm = analysis.estimate_one_rep_max(
+            weight=set_info['weight'],
+            reps=set_info['reps']
+        )
+
+        # Calculate volume
+        volume = set_info['weight'] * set_info['reps']
+        total_volume += volume
+
+        # Create set log
+        db.create_set_log(
+            workout_log_id=workout_log_id,
+            exercise_id=set_info['exercise_id'],
+            set_type=set_info.get('set_type', 'working'),
+            set_number=set_info['set_number'],
+            target_weight=set_info['weight'],
+            actual_weight=set_info['weight'],
+            target_reps=set_info['reps'],
+            actual_reps=set_info['reps'],
+            rest_seconds=0,  # Unknown for manual entry
+            completed=True,
+            completed_at=workout_datetime,
+            one_rep_max_estimate=one_rm,
+            volume=volume,
+            notes=set_info.get('notes', '')
+        )
+
+    # Calculate total calories (rough estimate)
+    total_calories = analysis.estimate_calories_burned(total_volume)
+
+    # Update workout log with metadata
+    db.update_workout_log(
+        workout_log_id=workout_log_id,
+        end_time=workout_datetime,  # Same as start for manual entry
+        duration_seconds=0,  # Unknown for manual entry
+        total_volume=total_volume,
+        total_calories=total_calories,
+        total_sets=len(set_data),
+        muscle_groups_trained=','.join(muscle_groups),
+        status="completed",
+        notes=notes
+    )
+
+    return workout_log_id
