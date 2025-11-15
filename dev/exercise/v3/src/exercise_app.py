@@ -1181,9 +1181,14 @@ def render_history():
     # Prepare display data
     display_data = []
     for _, log in history_df.head(20).iterrows():
-        # Get workout name
-        workout = db.get_workout_by_id(log['workout_id'])
-        workout_name = workout['name'] if workout is not None else 'Unknown'
+        # Get workout name (handle NULL workout_id for ad-hoc workouts)
+        if pd.notna(log.get('workout_id')):
+            workout = db.get_workout_by_id(log['workout_id'])
+            workout_name = workout['name'] if workout is not None else 'Unknown Template'
+        else:
+            # Format: "Manual Entry - YYYY-MM-DD"
+            workout_date_str = pd.to_datetime(log['start_time']).strftime('%Y-%m-%d') if pd.notna(log['start_time']) else 'N/A'
+            workout_name = f'Manual Entry - {workout_date_str}'
 
         # Format date
         workout_date = log['start_time'].strftime('%Y-%m-%d %H:%M') if pd.notna(log['start_time']) else 'N/A'
@@ -1238,16 +1243,17 @@ def render_log_old_workout():
         # Load all workouts
         workouts_df = db.get_all_workouts()
 
-        if workouts_df.empty:
-            st.warning("No workouts found. Please create a workout first.")
-            return
+        # Create workout options with "No template" as default
+        workout_options = {"(No template - just log sets)": None}
+        if not workouts_df.empty:
+            for _, row in workouts_df.iterrows():
+                workout_options[row['name']] = row['id']
 
-        # Workout selection
-        workout_options = {f"{row['name']}": row['id'] for _, row in workouts_df.iterrows()}
+        # Workout selection (optional)
         selected_workout_name = st.selectbox(
-            "Select Workout",
+            "Select Workout (Optional)",
             options=list(workout_options.keys()),
-            help="Choose the workout template you performed"
+            help="Choose a workout template if you want to associate these sets with one, or leave as 'No template' to just log individual sets"
         )
         selected_workout_id = workout_options[selected_workout_name]
 
@@ -1441,6 +1447,166 @@ def render_log_old_workout():
 
 
 # ============================================================================
+# RENDER: ANALYTICS
+# ============================================================================
+
+def render_analytics():
+    """Render the Analytics page with filterable historic data"""
+
+    st.title("📊 Analytics")
+    st.write("View and analyze your workout history")
+
+    # Load all set logs
+    all_sets_df = db.get_all_set_logs()
+
+    if all_sets_df.empty:
+        st.info("No workout data yet. Complete some workouts to see analytics!")
+        return
+
+    # Load all workouts and exercises for reference
+    all_workouts_df = db.get_all_workouts()
+    all_exercises_df = db.get_all_exercises()
+
+    # Create lookup dictionaries
+    exercise_name_map = {row['id']: row['name'] for _, row in all_exercises_df.iterrows()}
+
+    # Add exercise names to sets
+    all_sets_df['exercise_name'] = all_sets_df['exercise_id'].map(exercise_name_map)
+
+    # Get workout dates from workout_log_id
+    workout_logs_df = db.load_table("workout_logs")
+    workout_date_map = {row['id']: row['start_time'] for _, row in workout_logs_df.iterrows()}
+    all_sets_df['workout_date'] = all_sets_df['workout_log_id'].map(workout_date_map)
+
+    # Convert workout_date to datetime if it's not already
+    all_sets_df['workout_date'] = pd.to_datetime(all_sets_df['workout_date'])
+
+    # Extract just the date for filtering
+    all_sets_df['date_only'] = all_sets_df['workout_date'].dt.date
+
+    st.subheader("Filter Options")
+
+    # Create filter columns
+    col1, col2 = st.columns(2)
+
+    with col1:
+        # Date filter
+        unique_dates = sorted(all_sets_df['date_only'].dropna().unique(), reverse=True)
+        date_options = ["All Dates"] + [str(d) for d in unique_dates]
+
+        selected_date = st.selectbox(
+            "Filter by Date",
+            options=date_options,
+            help="Select a specific workout date to view all sets from that day"
+        )
+
+    with col2:
+        # Exercise filter
+        unique_exercises = sorted(all_sets_df['exercise_name'].dropna().unique())
+        exercise_options = ["All Exercises"] + unique_exercises
+
+        selected_exercise = st.selectbox(
+            "Filter by Exercise",
+            options=exercise_options,
+            help="Select a specific exercise to view all historic sets"
+        )
+
+    # Apply filters
+    filtered_df = all_sets_df.copy()
+
+    if selected_date != "All Dates":
+        filtered_df = filtered_df[filtered_df['date_only'].astype(str) == selected_date]
+
+    if selected_exercise != "All Exercises":
+        filtered_df = filtered_df[filtered_df['exercise_name'] == selected_exercise]
+
+    # Display results
+    st.subheader("Results")
+
+    if filtered_df.empty:
+        st.warning("No data matches the selected filters.")
+    else:
+        # Show summary stats
+        col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
+
+        with col_stat1:
+            st.metric("Total Sets", len(filtered_df))
+
+        with col_stat2:
+            total_volume = (filtered_df['target_weight'] * filtered_df['target_reps']).sum()
+            st.metric("Total Volume (lbs)", f"{total_volume:,.0f}")
+
+        with col_stat3:
+            unique_exercises_count = filtered_df['exercise_name'].nunique()
+            st.metric("Exercises", unique_exercises_count)
+
+        with col_stat4:
+            unique_dates_count = filtered_df['date_only'].nunique()
+            st.metric("Workout Days", unique_dates_count)
+
+        st.markdown("---")
+
+        # Prepare display dataframe
+        display_columns = [
+            'workout_date',
+            'exercise_name',
+            'set_type',
+            'set_number',
+            'target_weight',
+            'actual_weight',
+            'target_reps',
+            'actual_reps',
+            'completed',
+            'volume',
+            'one_rep_max_estimate',
+            'notes'
+        ]
+
+        # Filter to only existing columns
+        display_columns = [col for col in display_columns if col in filtered_df.columns]
+
+        display_df = filtered_df[display_columns].copy()
+
+        # Format the workout_date column
+        display_df['workout_date'] = display_df['workout_date'].dt.strftime('%Y-%m-%d %H:%M')
+
+        # Rename columns for better display
+        display_df = display_df.rename(columns={
+            'workout_date': 'Workout Date',
+            'exercise_name': 'Exercise',
+            'set_type': 'Set Type',
+            'set_number': 'Set #',
+            'target_weight': 'Target Weight (lbs)',
+            'actual_weight': 'Actual Weight (lbs)',
+            'target_reps': 'Target Reps',
+            'actual_reps': 'Actual Reps',
+            'completed': 'Completed',
+            'volume': 'Volume (lbs)',
+            'one_rep_max_estimate': '1RM Estimate',
+            'notes': 'Notes'
+        })
+
+        # Sort by date descending (most recent first)
+        display_df = display_df.sort_values('Workout Date', ascending=False)
+
+        # Display the table
+        st.dataframe(
+            display_df,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        # Download button
+        csv = display_df.to_csv(index=False)
+        st.download_button(
+            label="📥 Download as CSV",
+            data=csv,
+            file_name=f"workout_analytics_{selected_date}_{selected_exercise}.csv",
+            mime="text/csv"
+        )
+
+
+# ============================================================================
 # RENDER: ABOUT
 # ============================================================================
 
@@ -1545,13 +1711,14 @@ def render_exercise_app():
         st.session_state['active_tab'] = 2  # Workout Overview tab
 
     # Create tabs for navigation
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
         "📚 Exercise Library",
         "🏋️ Create Workout",
         "📊 Workout Overview",
         "💪 Workout Execution",
         "📈 History",
         "📝 Log Old Workout",
+        "📊 Analytics",
         "ℹ️ About"
     ])
 
@@ -1574,4 +1741,7 @@ def render_exercise_app():
         render_log_old_workout()
 
     with tab7:
+        render_analytics()
+
+    with tab8:
         render_about()

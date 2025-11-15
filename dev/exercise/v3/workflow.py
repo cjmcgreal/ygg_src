@@ -278,9 +278,14 @@ def handle_complete_workout(
     start_time = workout_log['start_time']
     end_time = datetime.now()
 
-    # Get workout to find exercise IDs
-    workout = db.get_workout_by_id(workout_log['workout_id'])
-    exercise_ids = workout['exercise_ids']
+    # Get exercise IDs - either from workout template or derive from set_logs
+    if workout_log.get('workout_id') and not pd.isna(workout_log['workout_id']):
+        # Template-based workout - get exercise list from template
+        workout = db.get_workout_by_id(workout_log['workout_id'])
+        exercise_ids = workout['exercise_ids']
+    else:
+        # Ad-hoc workout - derive exercise list from set_data
+        exercise_ids = list(set(s['exercise_id'] for s in set_data))
 
     # Save each completed set
     for set_info in set_data:
@@ -387,11 +392,17 @@ def get_workout_history(
 
     # Enrich each workout log with workout name
     for log in logs_list:
-        workout = db.get_workout_by_id(log['workout_id'])
-        if workout:
-            log['workout_name'] = workout['name']
+        # Handle NULL/NaN workout_id (ad-hoc workouts)
+        if log.get('workout_id') and not pd.isna(log['workout_id']):
+            workout = db.get_workout_by_id(log['workout_id'])
+            if workout:
+                log['workout_name'] = workout['name']
+            else:
+                log['workout_name'] = 'Unknown Template'
         else:
-            log['workout_name'] = 'Unknown'
+            # Format: "Manual Entry - YYYY-MM-DD"
+            workout_date = pd.to_datetime(log['start_time']).strftime('%Y-%m-%d')
+            log['workout_name'] = f'Manual Entry - {workout_date}'
 
     return logs_list
 
@@ -444,16 +455,16 @@ def get_workout_details(workout_id: int) -> Dict[str, Any]:
 
 
 def handle_log_old_workout(
-    workout_id: int,
-    workout_datetime: datetime,
-    set_data: List[Dict[str, Any]],
+    workout_id: Optional[int] = None,
+    workout_datetime: datetime = None,
+    set_data: List[Dict[str, Any]] = None,
     notes: str = ""
 ) -> int:
     """
     Log a workout from the past with manual set data
 
     Args:
-        workout_id: Workout template ID
+        workout_id: Optional workout template ID (None for ad-hoc sets)
         workout_datetime: When the workout was performed
         set_data: List of set dicts with exercise_id, set_number, weight, reps, set_type
         notes: Optional workout notes
@@ -467,7 +478,7 @@ def handle_log_old_workout(
     if not set_data:
         raise ValueError("At least one set must be logged")
 
-    # Create workout log
+    # Create workout log (workout_id can be None for ad-hoc logging)
     workout_log_id = db.create_workout_log(
         workout_id=workout_id,
         start_time=workout_datetime,

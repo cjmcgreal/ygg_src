@@ -343,12 +343,12 @@ def get_workout_log_by_id(workout_log_id: int) -> Optional[Dict[str, Any]]:
     return result.iloc[0].to_dict()
 
 
-def create_workout_log(workout_id: int, start_time: datetime, status: str = "in_progress") -> int:
+def create_workout_log(workout_id: Optional[int] = None, start_time: datetime = None, status: str = "in_progress") -> int:
     """
     Create a new workout log entry
 
     Args:
-        workout_id: Workout template ID
+        workout_id: Optional workout template ID (None for ad-hoc sets)
         start_time: Workout start timestamp
         status: Workout status (default: "in_progress")
 
@@ -361,7 +361,7 @@ def create_workout_log(workout_id: int, start_time: datetime, status: str = "in_
 
     new_row = pd.DataFrame([{
         'id': new_id,
-        'workout_id': workout_id,
+        'workout_id': workout_id if workout_id is not None else None,
         'start_time': start_time,
         'end_time': None,
         'duration_seconds': None,
@@ -457,7 +457,8 @@ def query_workout_logs(
     if end_date is not None:
         df = df[df['start_time'] <= end_date]
     if workout_id is not None:
-        df = df[df['workout_id'] == workout_id]
+        # Handle NULL/NaN values safely
+        df = df[df['workout_id'].notna() & (df['workout_id'] == workout_id)]
 
     return df
 
