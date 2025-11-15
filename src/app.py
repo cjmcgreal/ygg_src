@@ -1,23 +1,17 @@
 """
-Main Streamlit Application - Domain Aggregator
+Main Streamlit Application - Home Page
 
-This is the root app.py that brings together all domain subapps.
-Each domain has its own folder under domains/ with a render_{domain}_app() function.
+This is the root app.py that serves as the home page.
+Domain-specific functionality is in separate pages in the pages/ folder.
 
-Navigation: Sidebar for domain selection, tabs within each domain for sub-sections.
+Navigation: Streamlit pages in sidebar, tabs within each domain for sub-sections.
 """
 import streamlit as st
 
-# Import domain render functions
-from domains.trees.trees_app import render_trees_app
-from domains.exercise.exercise_app import render_exercise_app
-from domains.finance.finance_app import render_finance_app
-from domains.task_management.task_management_app import render_task_management_app
-from domains.travel.travel_app import render_travel_app
-
 # Page configuration
 st.set_page_config(
-    page_title="Personal Dashboard",
+    page_title="Personal Dashboard - Home",
+    page_icon="🏠",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -31,38 +25,29 @@ st.markdown("""
             padding-left: 5rem;
             padding-right: 5rem;
         }
-        section[data-testid="stSidebar"] {
-            width: 250px !important;
-        }
     </style>
     """, unsafe_allow_html=True)
 
-# Sidebar navigation
-with st.sidebar:
-    st.title("Navigation")
+# Home page content
+st.title("🏠 Personal Dashboard")
 
-    # Domain selection
-    selected_domain = st.radio(
-        "Select Domain",
-        options=["Trees", "Exercise", "Finance", "Task Manager", "Travel"],
-        index=0
-    )
+st.write("Welcome to your personal dashboard!")
 
-    st.divider()
-    st.caption("Each domain can have its own tabs and navigation")
+st.markdown("""
+## Available Domains
 
-# Main app title
-st.title("Personal Dashboard")
+Use the sidebar to navigate between different domains:
 
-# Render the selected domain
-if selected_domain == "Trees":
-    render_trees_app()
-elif selected_domain == "Exercise":
-    render_exercise_app()
-elif selected_domain == "Finance":
-    render_finance_app()
-elif selected_domain == "Task Manager":
-    render_task_management_app()
-elif selected_domain == "Travel":
-    render_travel_app()
+- **🌳 Trees** - Tree visualization and management
+- **💪 Exercise** - Exercise tracking and workout planning
+- **💰 Finance** - Financial tracking and analysis
+- **✅ Task Manager** - Task management and productivity
+- **✈️ Travel** - Travel planning and tracking
+
+## Getting Started
+
+Click on any domain in the sidebar to get started!
+
+Each domain has its own features and functionality, with tabs for organizing different sections within that domain.
+""")
 

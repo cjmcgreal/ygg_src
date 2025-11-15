@@ -6,13 +6,15 @@ This document explains the two-level navigation pattern used in the application.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  SIDEBAR (Domain Selection)                                  │
+│  SIDEBAR (Page Navigation)                                   │
 │  ┌──────────────────┐                                        │
-│  │ ○ Trees          │                                        │
-│  │ ● Exercise       │ ← Selected domain                      │
-│  │ ○ Finance        │                                        │
-│  │ ○ Task Manager   │                                        │
-│  │ ○ Travel         │                                        │
+│  │ 🏠 Personal      │                                        │
+│  │    Dashboard     │                                        │
+│  │ 🌳 Trees         │                                        │
+│  │ 💪 Exercise      │ ← Selected page                        │
+│  │ 💰 Finance       │                                        │
+│  │ ✅ Task Manager  │                                        │
+│  │ ✈️ Travel        │                                        │
 │  └──────────────────┘                                        │
 └─────────────────────────────────────────────────────────────┘
 
@@ -29,18 +31,23 @@ This document explains the two-level navigation pattern used in the application.
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Level 1: Sidebar Domain Navigation
+## Level 1: Sidebar Page Navigation
 
 **Location**: Left sidebar
-**Control**: Radio buttons
+**Control**: Streamlit's built-in page navigation
 **Purpose**: Switch between major functional areas (domains)
+**Benefits**:
+- URL routing (each page has its own URL)
+- Browser back/forward buttons work
+- Direct linking to specific domains
 
-Available domains:
-- **Trees** - Tree visualization
-- **Exercise** - Exercise tracking
-- **Finance** - Financial tracking
-- **Task Manager** - Task management
-- **Travel** - Travel planning
+Available pages:
+- **🏠 Personal Dashboard** - Home page (app.py)
+- **🌳 Trees** - Tree visualization (pages/1_🌳_Trees.py)
+- **💪 Exercise** - Exercise tracking (pages/2_💪_Exercise.py)
+- **💰 Finance** - Financial tracking (pages/3_💰_Finance.py)
+- **✅ Task Manager** - Task management (pages/4_✅_Task_Manager.py)
+- **✈️ Travel** - Travel planning (pages/5_✈️_Travel.py)
 
 ## Level 2: Domain Tabs (Optional)
 
@@ -55,18 +62,33 @@ Example (Exercise domain):
 
 ## Implementation Pattern
 
-### In app.py (Root):
+### In app.py (Home Page):
 ```python
-# Sidebar for domain selection
-with st.sidebar:
-    selected_domain = st.radio(
-        "Select Domain",
-        options=["Trees", "Exercise", "Finance", "Task Manager", "Travel"]
-    )
+# Home page content
+st.title("🏠 Personal Dashboard")
+st.write("Welcome to your personal dashboard!")
 
-# Render selected domain
-if selected_domain == "Exercise":
-    render_exercise_app()
+# Navigation happens automatically via pages/ folder
+```
+
+### In pages/2_💪_Exercise.py (Example Page):
+```python
+import streamlit as st
+import sys
+import os
+
+# Add parent directory to path for imports
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+from domains.exercise.exercise_app import render_exercise_app
+
+# Page config
+st.set_page_config(page_title="Exercise", page_icon="💪", layout="wide")
+
+# Render the domain
+render_exercise_app()
 ```
 
 ### In {domain}_app.py (Domain level):
@@ -92,11 +114,14 @@ def render_exercise_app():
 
 ## Benefits of This Pattern
 
-1. **Clear Hierarchy**: Sidebar for major sections, tabs for sub-sections
-2. **Flexibility**: Domains can choose to use tabs or not
-3. **Familiar UX**: Standard navigation pattern users expect
-4. **Scalability**: Easy to add new domains or sub-sections
-5. **Clean Code**: Each domain controls its own internal navigation
+1. **Clear Hierarchy**: Sidebar pages for major sections, tabs for sub-sections
+2. **URL Routing**: Each page has its own URL for bookmarking and sharing
+3. **Browser Integration**: Back/forward buttons work naturally
+4. **Flexibility**: Domains can choose to use tabs or not
+5. **Familiar UX**: Standard Streamlit multi-page app pattern
+6. **Scalability**: Easy to add new domains by creating new page files
+7. **Clean Code**: Each domain controls its own internal navigation
+8. **Automatic Navigation**: Streamlit generates sidebar navigation automatically
 
 ## Adding Navigation to Your Domain
 
