@@ -215,3 +215,23 @@ def calculate_workout_metadata(
         'total_sets': total_sets,
         'muscle_groups_trained': muscle_groups_trained
     }
+
+
+def estimate_calories_burned(total_volume_lbs: float) -> float:
+    """
+    Rough estimate of calories burned based on total volume
+
+    Args:
+        total_volume_lbs: Total volume (weight × reps) in pounds
+
+    Returns:
+        Estimated calories burned
+
+    Note:
+        This is a rough approximation. Actual calorie burn depends on many factors
+        including duration, intensity, rest periods, and individual metabolism.
+        General rule of thumb: ~0.05 calories per pound of volume moved.
+    """
+    # Rough estimate: 0.05 calories per pound of volume
+    # For example: 10,000 lbs of volume ≈ 500 calories
+    return round(total_volume_lbs * 0.05, 2)

@@ -57,6 +57,11 @@ def render_exercise_library():
     with col_form:
         st.subheader("Create New Exercise")
 
+        # Display success message if exercise was just created
+        if 'exercise_created_success' in st.session_state:
+            st.success(f"✅ Exercise '{st.session_state['exercise_created_success']}' created successfully!")
+            del st.session_state['exercise_created_success']
+
         # Progression scheme OUTSIDE form for dynamic updates
         progression_scheme = st.radio(
             "Progression Scheme *",
@@ -65,7 +70,7 @@ def render_exercise_library():
             key="exercise_progression_scheme"
         )
 
-        with st.form("exercise_form", clear_on_submit=True):
+        with st.form("exercise_form", clear_on_submit=False):
             # Exercise name (required)
             exercise_name = st.text_input(
                 "Exercise Name *",
@@ -117,11 +122,11 @@ def render_exercise_library():
                 rep_increment = None
                 weight_increment = st.number_input(
                     "Weight Increment (lbs) *",
-                    min_value=0.5,
+                    min_value=-50.0,
                     max_value=50.0,
                     value=5.0,
                     step=0.5,
-                    help="Amount to increase weight on successful workout"
+                    help="Amount to change weight on successful workout (use negative for assisted exercises)"
                 )
             elif progression_scheme == "Linear Weight":
                 target_reps = st.number_input(
@@ -136,11 +141,11 @@ def render_exercise_library():
                 rep_increment = None
                 weight_increment = st.number_input(
                     "Weight Increment (lbs) *",
-                    min_value=0.5,
+                    min_value=-50.0,
                     max_value=50.0,
                     value=5.0,
                     step=0.5,
-                    help="Amount to increase weight on successful workout"
+                    help="Amount to change weight on successful workout (use negative for assisted exercises)"
                 )
             else:  # Linear Reps
                 target_reps = st.number_input(
@@ -221,7 +226,8 @@ def render_exercise_library():
                     try:
                         # Call workflow to create exercise
                         exercise_id = workflow.handle_create_exercise(exercise_data)
-                        st.success(f"✅ Exercise '{exercise_name}' created successfully (ID: {exercise_id})")
+                        # Store success message in session state so it persists after rerun
+                        st.session_state['exercise_created_success'] = exercise_name
                         st.rerun()
                     except ValueError as e:
                         st.error(f"Validation error: {str(e)}")
@@ -370,6 +376,219 @@ def render_exercise_library():
                                 st.write("Enabled")
                         else:
                             st.write("**Warmup Sets:** Disabled")
+
+                        # Edit button
+                        st.write("---")
+                        if st.button("✏️ Edit Exercise", key=f"edit_btn_{exercise['id']}", use_container_width=True):
+                            st.session_state['editing_exercise_id'] = exercise['id']
+                            st.rerun()
+
+    # Edit Exercise Form
+    if 'editing_exercise_id' in st.session_state:
+        st.write("---")
+        st.subheader("Edit Exercise")
+
+        # Load exercise to edit
+        exercise_to_edit = db.get_exercise_by_id(st.session_state['editing_exercise_id'])
+
+        if exercise_to_edit:
+            # Map database progression scheme to UI value
+            if exercise_to_edit['progression_scheme'] == 'rep_range':
+                prog_scheme_ui = "Rep Range"
+            elif exercise_to_edit['progression_scheme'] == 'linear_weight':
+                prog_scheme_ui = "Linear Weight"
+            else:
+                prog_scheme_ui = "Linear Reps"
+
+            # Initialize progression scheme in session state if not set
+            if 'edit_prog_scheme' not in st.session_state:
+                st.session_state['edit_prog_scheme'] = prog_scheme_ui
+
+            # Progression scheme selector outside form for dynamic updates
+            edit_progression_scheme = st.radio(
+                "Progression Scheme *",
+                options=["Rep Range", "Linear Weight", "Linear Reps"],
+                index=["Rep Range", "Linear Weight", "Linear Reps"].index(st.session_state['edit_prog_scheme']),
+                help="Rep Range: Add reps until max, then add weight. Linear Weight: Add weight each workout. Linear Reps: Add reps each workout.",
+                key="edit_exercise_progression_scheme"
+            )
+
+            # Update session state
+            st.session_state['edit_prog_scheme'] = edit_progression_scheme
+
+            with st.form("edit_exercise_form", clear_on_submit=False):
+                # Exercise name
+                edit_name = st.text_input(
+                    "Exercise Name *",
+                    value=exercise_to_edit['name'],
+                    help="Enter the name of the exercise"
+                )
+
+                # Description
+                edit_description = st.text_area(
+                    "Description",
+                    value=exercise_to_edit.get('description', ''),
+                    help="Add any notes about the exercise"
+                )
+
+                # Primary muscles
+                current_primary = [m.strip().title() for m in exercise_to_edit['primary_muscle_groups'].split(',') if m.strip()]
+                edit_primary_muscles = st.multiselect(
+                    "Primary Muscle Groups *",
+                    options=MUSCLE_GROUPS,
+                    default=current_primary,
+                    help="Select at least one primary muscle group"
+                )
+
+                # Secondary muscles
+                current_secondary = []
+                if pd.notna(exercise_to_edit.get('secondary_muscle_groups')) and exercise_to_edit['secondary_muscle_groups']:
+                    current_secondary = [m.strip().title() for m in exercise_to_edit['secondary_muscle_groups'].split(',') if m.strip()]
+                edit_secondary_muscles = st.multiselect(
+                    "Secondary Muscle Groups",
+                    options=MUSCLE_GROUPS,
+                    default=current_secondary,
+                    help="Select any secondary muscle groups"
+                )
+
+                # Conditional inputs based on progression scheme
+                if edit_progression_scheme == "Rep Range":
+                    col_min, col_max = st.columns(2)
+                    with col_min:
+                        # Safe conversion with NaN check
+                        rep_min_val = exercise_to_edit.get('rep_range_min')
+                        rep_min_val = int(rep_min_val) if pd.notna(rep_min_val) else 8
+                        edit_rep_range_min = st.number_input(
+                            "Min Reps",
+                            min_value=1,
+                            max_value=50,
+                            value=rep_min_val,
+                            help="Minimum reps in the range"
+                        )
+                    with col_max:
+                        rep_max_val = exercise_to_edit.get('rep_range_max')
+                        rep_max_val = int(rep_max_val) if pd.notna(rep_max_val) else 12
+                        edit_rep_range_max = st.number_input(
+                            "Max Reps",
+                            min_value=1,
+                            max_value=50,
+                            value=rep_max_val,
+                            help="Maximum reps in the range"
+                        )
+                    edit_target_reps = None
+                    edit_rep_increment = None
+                    weight_inc_val = exercise_to_edit.get('weight_increment')
+                    weight_inc_val = float(weight_inc_val) if pd.notna(weight_inc_val) else 5.0
+                    edit_weight_increment = st.number_input(
+                        "Weight Increment (lbs) *",
+                        min_value=-50.0,
+                        max_value=50.0,
+                        value=weight_inc_val,
+                        step=0.5,
+                        help="Amount to change weight on successful workout (use negative for assisted exercises)"
+                    )
+                elif edit_progression_scheme == "Linear Weight":
+                    target_reps_val = exercise_to_edit.get('target_reps')
+                    target_reps_val = int(target_reps_val) if pd.notna(target_reps_val) else 5
+                    edit_target_reps = st.number_input(
+                        "Target Reps",
+                        min_value=1,
+                        max_value=50,
+                        value=target_reps_val,
+                        help="Fixed number of reps for each set"
+                    )
+                    edit_rep_range_min = None
+                    edit_rep_range_max = None
+                    edit_rep_increment = None
+                    weight_inc_val = exercise_to_edit.get('weight_increment')
+                    weight_inc_val = float(weight_inc_val) if pd.notna(weight_inc_val) else 5.0
+                    edit_weight_increment = st.number_input(
+                        "Weight Increment (lbs) *",
+                        min_value=-50.0,
+                        max_value=50.0,
+                        value=weight_inc_val,
+                        step=0.5,
+                        help="Amount to change weight on successful workout (use negative for assisted exercises)"
+                    )
+                else:  # Linear Reps
+                    target_reps_val = exercise_to_edit.get('target_reps')
+                    target_reps_val = int(target_reps_val) if pd.notna(target_reps_val) else 5
+                    edit_target_reps = st.number_input(
+                        "Starting Reps",
+                        min_value=1,
+                        max_value=50,
+                        value=target_reps_val,
+                        help="Starting number of reps for each set"
+                    )
+                    edit_rep_range_min = None
+                    edit_rep_range_max = None
+                    rep_inc_val = exercise_to_edit.get('rep_increment')
+                    rep_inc_val = int(rep_inc_val) if pd.notna(rep_inc_val) else 1
+                    edit_rep_increment = st.number_input(
+                        "Rep Increment *",
+                        min_value=1,
+                        max_value=10,
+                        value=rep_inc_val,
+                        help="Number of reps to add each successful workout"
+                    )
+                    edit_weight_increment = None
+
+                # Form buttons
+                col1, col2 = st.columns([1, 1])
+                with col1:
+                    cancel_button = st.form_submit_button("Cancel", use_container_width=True)
+                with col2:
+                    save_button = st.form_submit_button("Save Changes", type="primary", use_container_width=True)
+
+                if cancel_button:
+                    del st.session_state['editing_exercise_id']
+                    if 'edit_prog_scheme' in st.session_state:
+                        del st.session_state['edit_prog_scheme']
+                    st.rerun()
+
+                if save_button:
+                    # Validate
+                    if not edit_name.strip():
+                        st.error("Exercise name is required")
+                    elif not edit_primary_muscles:
+                        st.error("At least one primary muscle group is required")
+                    elif edit_progression_scheme == "Rep Range" and edit_rep_range_min >= edit_rep_range_max:
+                        st.error("Min reps must be less than max reps")
+                    else:
+                        # Map UI progression scheme to database value
+                        if edit_progression_scheme == "Rep Range":
+                            prog_scheme_db = "rep_range"
+                        elif edit_progression_scheme == "Linear Weight":
+                            prog_scheme_db = "linear_weight"
+                        else:
+                            prog_scheme_db = "linear_reps"
+
+                        # Build exercise data
+                        exercise_data = {
+                            "name": edit_name.strip(),
+                            "description": edit_description.strip(),
+                            "primary_muscle_groups": ",".join([m.lower() for m in edit_primary_muscles]),
+                            "secondary_muscle_groups": ",".join([m.lower() for m in edit_secondary_muscles]) if edit_secondary_muscles else "",
+                            "progression_scheme": prog_scheme_db,
+                            "rep_range_min": edit_rep_range_min,
+                            "rep_range_max": edit_rep_range_max,
+                            "target_reps": edit_target_reps,
+                            "rep_increment": edit_rep_increment,
+                            "weight_increment": edit_weight_increment,
+                            "warmup_config": exercise_to_edit.get('warmup_config')
+                        }
+
+                        try:
+                            workflow.handle_update_exercise(st.session_state['editing_exercise_id'], exercise_data)
+                            st.success(f"✅ Exercise '{edit_name}' updated successfully!")
+                            del st.session_state['editing_exercise_id']
+                            if 'edit_prog_scheme' in st.session_state:
+                                del st.session_state['edit_prog_scheme']
+                            st.rerun()
+                        except ValueError as e:
+                            st.error(f"Validation error: {str(e)}")
+                        except Exception as e:
+                            st.error(f"Error updating exercise: {str(e)}")
 
     # Footer
     st.write("---")

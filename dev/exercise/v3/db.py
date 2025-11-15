@@ -182,6 +182,73 @@ def create_exercise(
     return new_id
 
 
+def update_exercise(
+    exercise_id: int,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    primary_muscle_groups: Optional[str] = None,
+    secondary_muscle_groups: Optional[str] = None,
+    progression_scheme: Optional[str] = None,
+    rep_range_min: Optional[int] = None,
+    rep_range_max: Optional[int] = None,
+    target_reps: Optional[int] = None,
+    rep_increment: Optional[int] = None,
+    weight_increment: Optional[float] = None,
+    warmup_config: Optional[str] = None
+) -> bool:
+    """
+    Update an existing exercise
+
+    Args:
+        exercise_id: Exercise ID to update
+        name: Exercise name
+        description: Optional description
+        primary_muscle_groups: Comma-separated muscle groups
+        secondary_muscle_groups: Comma-separated muscle groups
+        progression_scheme: Either "rep_range", "linear_weight", or "linear_reps"
+        rep_range_min: Minimum reps for rep_range scheme
+        rep_range_max: Maximum reps for rep_range scheme
+        target_reps: Fixed/starting rep count for linear_weight or linear_reps scheme
+        rep_increment: Rep increment for linear_reps scheme
+        weight_increment: Weight increment in lbs/kg for rep_range and linear_weight schemes
+        warmup_config: JSON string with warmup configuration
+
+    Returns:
+        True if successful, False if exercise not found
+    """
+    df = load_table("exercises")
+    mask = df['id'] == exercise_id
+
+    if not mask.any():
+        return False
+
+    if name is not None:
+        df.loc[mask, 'name'] = name
+    if description is not None:
+        df.loc[mask, 'description'] = description
+    if primary_muscle_groups is not None:
+        df.loc[mask, 'primary_muscle_groups'] = primary_muscle_groups
+    if secondary_muscle_groups is not None:
+        df.loc[mask, 'secondary_muscle_groups'] = secondary_muscle_groups
+    if progression_scheme is not None:
+        df.loc[mask, 'progression_scheme'] = progression_scheme
+    if rep_range_min is not None:
+        df.loc[mask, 'rep_range_min'] = rep_range_min
+    if rep_range_max is not None:
+        df.loc[mask, 'rep_range_max'] = rep_range_max
+    if target_reps is not None:
+        df.loc[mask, 'target_reps'] = target_reps
+    if rep_increment is not None:
+        df.loc[mask, 'rep_increment'] = rep_increment
+    if weight_increment is not None:
+        df.loc[mask, 'weight_increment'] = weight_increment
+    if warmup_config is not None:
+        df.loc[mask, 'warmup_config'] = warmup_config
+
+    save_table("exercises", df)
+    return True
+
+
 # ============================================================================
 # WORKOUTS
 # ============================================================================

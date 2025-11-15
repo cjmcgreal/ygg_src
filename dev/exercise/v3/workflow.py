@@ -83,6 +83,83 @@ def handle_create_exercise(exercise_data: Dict[str, Any]) -> int:
     return exercise_id
 
 
+def handle_update_exercise(exercise_id: int, exercise_data: Dict[str, Any]) -> bool:
+    """
+    Update an existing exercise in the library
+
+    Args:
+        exercise_id: Exercise ID to update
+        exercise_data: Dict with all exercise fields
+
+    Returns:
+        True if successful
+
+    Raises:
+        ValueError: If validation fails
+    """
+    # Validate required fields
+    name = exercise_data.get('name', '').strip()
+    if not name:
+        raise ValueError("Exercise name is required")
+
+    primary_muscle_groups = exercise_data.get('primary_muscle_groups', '').strip()
+    if not primary_muscle_groups:
+        raise ValueError("At least one primary muscle group is required")
+
+    progression_scheme = exercise_data.get('progression_scheme', 'rep_range')
+
+    # Validate progression scheme specific fields
+    if progression_scheme == 'rep_range':
+        rep_range_min = exercise_data.get('rep_range_min')
+        rep_range_max = exercise_data.get('rep_range_max')
+
+        if rep_range_min is None or rep_range_max is None:
+            raise ValueError("Rep range progression requires rep_range_min and rep_range_max")
+
+        if rep_range_min >= rep_range_max:
+            raise ValueError("rep_range_min must be less than rep_range_max")
+
+    elif progression_scheme == 'linear_weight':
+        target_reps = exercise_data.get('target_reps')
+
+        if target_reps is None:
+            raise ValueError("Linear weight progression requires target_reps")
+
+    elif progression_scheme == 'linear_reps':
+        target_reps = exercise_data.get('target_reps')
+        rep_increment = exercise_data.get('rep_increment')
+
+        if target_reps is None:
+            raise ValueError("Linear reps progression requires target_reps (starting reps)")
+
+        if rep_increment is None:
+            raise ValueError("Linear reps progression requires rep_increment")
+
+    else:
+        raise ValueError(f"Invalid progression scheme: {progression_scheme}")
+
+    # Update exercise using db layer
+    success = db.update_exercise(
+        exercise_id=exercise_id,
+        name=exercise_data.get('name'),
+        description=exercise_data.get('description', ''),
+        primary_muscle_groups=exercise_data.get('primary_muscle_groups', ''),
+        secondary_muscle_groups=exercise_data.get('secondary_muscle_groups', ''),
+        progression_scheme=exercise_data.get('progression_scheme', 'rep_range'),
+        rep_range_min=exercise_data.get('rep_range_min'),
+        rep_range_max=exercise_data.get('rep_range_max'),
+        target_reps=exercise_data.get('target_reps'),
+        rep_increment=exercise_data.get('rep_increment'),
+        weight_increment=exercise_data.get('weight_increment'),
+        warmup_config=exercise_data.get('warmup_config')
+    )
+
+    if not success:
+        raise ValueError(f"Exercise with ID {exercise_id} not found")
+
+    return True
+
+
 def handle_create_workout(
     name: str,
     exercise_ids: List[int],
@@ -410,7 +487,7 @@ def handle_log_old_workout(
         # Calculate 1RM estimate
         one_rm = analysis.estimate_one_rep_max(
             weight=set_info['weight'],
-            reps=set_info['reps']
+            reps_completed=set_info['reps']
         )
 
         # Calculate volume
