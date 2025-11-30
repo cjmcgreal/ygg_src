@@ -164,6 +164,8 @@ def calculate_next_workout_sets(
     """
     Calculate next workout sets based on progression logic
 
+    Supports both reps-based and duration-based exercises.
+
     Args:
         exercise_id: Exercise ID
         workout_log_id: Optional workout log ID (for future use)
@@ -179,6 +181,21 @@ def calculate_next_workout_sets(
     # Get exercise history
     history = get_exercise_progression_data(exercise_id)
 
+    exercise_type = exercise.get('exercise_type', 'reps')
+
+    # Handle duration-based exercises
+    if exercise_type == 'duration':
+        target_duration = _calculate_duration_progression(exercise, history)
+        return [{
+            'set_type': 'working',
+            'set_number': 1,
+            'target_weight': 0,
+            'target_reps': 1,  # 1 "rep" = 1 hold
+            'target_duration': target_duration,
+            'rest_seconds': 60
+        }]
+
+    # Reps-based exercise handling
     # Get current 1RM estimate
     current_1rm = analysis.get_latest_one_rep_max(exercise_id)
 
@@ -205,23 +222,39 @@ def calculate_next_workout_sets(
             'rest_seconds': 120  # Default rest for working sets
         })
 
-    # Generate warmup sets if enabled
-    warmup_sets = []
-    warmup_config_str = exercise.get('warmup_config')
+    # Check if warmup is required (use new boolean flag, fall back to legacy JSON)
+    warmup_required = exercise.get('warmup_required')
+    if pd.isna(warmup_required):
+        # Fall back to legacy warmup_config JSON
+        warmup_config_str = exercise.get('warmup_config')
+        if warmup_config_str and not pd.isna(warmup_config_str):
+            try:
+                warmup_config = json.loads(warmup_config_str)
+                warmup_required = warmup_config.get('enabled', False)
+            except (json.JSONDecodeError, KeyError, TypeError):
+                warmup_required = True
+        else:
+            warmup_required = True
 
-    # Check if warmup_config is not None and not NaN
-    if warmup_config_str and not pd.isna(warmup_config_str):
-        try:
-            warmup_config = json.loads(warmup_config_str)
-            warmup_sets = generate_warmup_sets(
-                warmup_config,
-                next_weight,
-                next_reps,
-                current_1rm
-            )
-        except (json.JSONDecodeError, KeyError, TypeError):
-            # If warmup config is invalid, skip warmups
-            pass
+    # Generate warmup sets if required
+    warmup_sets = []
+    if warmup_required:
+        default_warmup_config = {
+            'enabled': True,
+            'intensity_thresholds': [
+                {'min_percent_1rm': 0, 'max_percent_1rm': 50, 'warmup_sets': 1},
+                {'min_percent_1rm': 50, 'max_percent_1rm': 70, 'warmup_sets': 2},
+                {'min_percent_1rm': 70, 'max_percent_1rm': 100, 'warmup_sets': 3}
+            ],
+            'warmup_percentages': [40, 60, 80],
+            'warmup_reps': [8, 6, 4]
+        }
+        warmup_sets = generate_warmup_sets(
+            default_warmup_config,
+            next_weight,
+            next_reps,
+            current_1rm
+        )
 
     # Combine warmup + working sets
     all_sets = warmup_sets + working_sets
@@ -350,6 +383,64 @@ def _calculate_linear_reps_progression(
     return (next_weight, next_reps)
 
 
+def _calculate_duration_progression(
+    exercise: Dict[str, Any],
+    history: Dict[str, Any]
+) -> int:
+    """
+    Calculate next target duration for duration-based exercises
+
+    Duration increases by duration_increment each successful workout.
+
+    Args:
+        exercise: Exercise configuration dict
+        history: Exercise progression data (last_duration in 'last_reps' field)
+
+    Returns:
+        Next target duration in seconds
+    """
+    target_duration = exercise.get('target_duration', 30)  # Default 30 seconds
+    duration_increment = exercise.get('duration_increment', 5)  # Default +5 seconds
+
+    # First workout - use starting duration
+    if not history['has_history']:
+        return int(target_duration) if target_duration else 30
+
+    # For duration exercises, we store duration in the 'last_reps' field
+    last_duration = history.get('last_reps', target_duration)
+    was_successful = history['all_working_sets_completed']
+
+    if was_successful:
+        # Successful workout, add duration
+        next_duration = last_duration + (duration_increment or 5)
+    else:
+        # Failed workout, repeat same duration
+        next_duration = last_duration
+
+    return int(next_duration)
+
+
+def calculate_next_duration(exercise_id: int) -> int:
+    """
+    Calculate next target duration for a duration-based exercise
+
+    Args:
+        exercise_id: Exercise ID
+
+    Returns:
+        Next target duration in seconds
+    """
+    exercise = db.get_exercise_by_id(exercise_id)
+    if not exercise:
+        raise ValueError(f"Exercise {exercise_id} not found")
+
+    if exercise.get('exercise_type') != 'duration':
+        raise ValueError(f"Exercise {exercise_id} is not a duration-based exercise")
+
+    history = get_exercise_progression_data(exercise_id)
+    return _calculate_duration_progression(exercise, history)
+
+
 # ============================================================================
 # INTENSITY-BASED CALCULATIONS (for slot-based templates)
 # ============================================================================
@@ -419,19 +510,40 @@ def generate_sets_for_slot(
     """
     Generate complete set list (warmup + working) for a slot-based exercise
 
+    Supports both reps-based and duration-based exercises.
+
     Args:
         exercise_id: Exercise ID
         intensity: 'strength', 'hypertrophy', or 'endurance'
         num_sets: Number of working sets to generate (default: 3)
 
     Returns:
-        List of set dicts with set_type, set_number, target_weight, target_reps
+        List of set dicts with set_type, set_number, target_weight, target_reps/target_duration
     """
-    # Get exercise configuration for warmup settings
+    # Get exercise configuration
     exercise = db.get_exercise_by_id(exercise_id)
     if not exercise:
         raise ValueError(f"Exercise {exercise_id} not found")
 
+    exercise_type = exercise.get('exercise_type', 'reps')
+
+    # Handle duration-based exercises (no warmup, single set with duration)
+    if exercise_type == 'duration':
+        target_duration = _calculate_duration_progression(
+            exercise,
+            get_exercise_progression_data(exercise_id)
+        )
+        # Duration exercises typically have 1 "set" that's held for duration
+        return [{
+            'set_type': 'working',
+            'set_number': 1,
+            'target_weight': 0,
+            'target_reps': 1,  # 1 "rep" = 1 hold
+            'target_duration': target_duration,
+            'rest_seconds': 60
+        }]
+
+    # Reps-based exercise handling
     # Get rep range for this intensity
     rep_min, rep_max = get_rep_range_for_intensity(intensity)
 
@@ -444,21 +556,40 @@ def generate_sets_for_slot(
     # Get current 1RM for warmup calculations
     current_1rm = analysis.get_latest_one_rep_max(exercise_id)
 
-    # Generate warmup sets if exercise has warmup config
-    warmup_sets = []
-    warmup_config_str = exercise.get('warmup_config')
+    # Check if warmup is required (use new boolean flag, fall back to legacy JSON)
+    warmup_required = exercise.get('warmup_required')
+    if pd.isna(warmup_required):
+        # Fall back to legacy warmup_config JSON
+        warmup_config_str = exercise.get('warmup_config')
+        if warmup_config_str and not pd.isna(warmup_config_str):
+            try:
+                warmup_config = json.loads(warmup_config_str)
+                warmup_required = warmup_config.get('enabled', False)
+            except (json.JSONDecodeError, KeyError, TypeError):
+                warmup_required = True  # Default to True for reps-based
+        else:
+            warmup_required = True  # Default to True for reps-based
 
-    if warmup_config_str and not pd.isna(warmup_config_str):
-        try:
-            warmup_config = json.loads(warmup_config_str)
-            warmup_sets = generate_warmup_sets(
-                warmup_config,
-                working_weight,
-                target_reps,
-                current_1rm or 0
-            )
-        except (json.JSONDecodeError, KeyError, TypeError):
-            pass
+    # Generate warmup sets if required
+    warmup_sets = []
+    if warmup_required:
+        # Use default warmup config
+        default_warmup_config = {
+            'enabled': True,
+            'intensity_thresholds': [
+                {'min_percent_1rm': 0, 'max_percent_1rm': 50, 'warmup_sets': 1},
+                {'min_percent_1rm': 50, 'max_percent_1rm': 70, 'warmup_sets': 2},
+                {'min_percent_1rm': 70, 'max_percent_1rm': 100, 'warmup_sets': 3}
+            ],
+            'warmup_percentages': [40, 60, 80],
+            'warmup_reps': [8, 6, 4]
+        }
+        warmup_sets = generate_warmup_sets(
+            default_warmup_config,
+            working_weight,
+            target_reps,
+            current_1rm or 0
+        )
 
     # Generate working sets
     working_sets = []

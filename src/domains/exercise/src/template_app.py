@@ -27,6 +27,9 @@ MUSCLE_GROUPS = [
 # Intensity options
 INTENSITY_OPTIONS = ['strength', 'hypertrophy', 'endurance']
 
+# Role options (primary vs accessory classification)
+ROLE_OPTIONS = ['primary', 'accessory']
+
 
 def render_template_manager():
     """
@@ -79,7 +82,7 @@ def _render_template_list():
                 try:
                     slots = json.loads(template['slot_definitions']) if template['slot_definitions'] else []
                     slot_summary = ', '.join([
-                        f"{s.get('muscle_group', '?')} ({s.get('intensity', '?')[:3]})"
+                        f"{s.get('muscle_group', '?')} ({s.get('intensity', '?')[:3]}, {s.get('role', 'pri')[:3]})"
                         for s in slots[:3]
                     ])
                     if len(slots) > 3:
@@ -153,7 +156,7 @@ def _render_template_editor():
     # Render each slot
     for i, slot in enumerate(slots):
         with st.container():
-            cols = st.columns([2, 2, 1, 1])
+            cols = st.columns([2, 2, 1, 1, 1])
 
             with cols[0]:
                 muscle_group = st.selectbox(
@@ -177,6 +180,17 @@ def _render_template_editor():
                 slots[i]['intensity'] = intensity
 
             with cols[2]:
+                role = st.selectbox(
+                    "Role",
+                    options=ROLE_OPTIONS,
+                    index=ROLE_OPTIONS.index(slot.get('role', 'primary'))
+                        if slot.get('role') in ROLE_OPTIONS else 0,
+                    key=f"slot_role_{i}",
+                    format_func=lambda x: x.title()
+                )
+                slots[i]['role'] = role
+
+            with cols[3]:
                 num_sets = st.number_input(
                     "Sets",
                     min_value=1, max_value=10,
@@ -185,7 +199,7 @@ def _render_template_editor():
                 )
                 slots[i]['sets'] = num_sets
 
-            with cols[3]:
+            with cols[4]:
                 if st.button("🗑️", key=f"remove_slot_{i}"):
                     slots.pop(i)
                     st.rerun()
@@ -201,6 +215,7 @@ def _render_template_editor():
         slots.append({
             'muscle_group': 'chest',
             'intensity': 'hypertrophy',
+            'role': 'primary',
             'sets': 3,
             'slot_order': len(slots) + 1
         })

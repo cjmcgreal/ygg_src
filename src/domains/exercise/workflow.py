@@ -80,7 +80,10 @@ def handle_create_exercise(exercise_data: Dict[str, Any]) -> int:
         rep_increment=exercise_data.get('rep_increment'),
         weight_increment=exercise_data.get('weight_increment'),
         warmup_config=exercise_data.get('warmup_config'),
-        observed_1rm=exercise_data.get('observed_1rm')
+        exercise_type=exercise_data.get('exercise_type', 'reps'),
+        target_duration=exercise_data.get('target_duration'),
+        duration_increment=exercise_data.get('duration_increment'),
+        warmup_required=exercise_data.get('warmup_required', True)
     )
 
     return exercise_id
@@ -156,7 +159,10 @@ def handle_update_exercise(exercise_id: int, exercise_data: Dict[str, Any]) -> b
         rep_increment=exercise_data.get('rep_increment'),
         weight_increment=exercise_data.get('weight_increment'),
         warmup_config=exercise_data.get('warmup_config'),
-        observed_1rm=exercise_data.get('observed_1rm')
+        exercise_type=exercise_data.get('exercise_type'),
+        target_duration=exercise_data.get('target_duration'),
+        duration_increment=exercise_data.get('duration_increment'),
+        warmup_required=exercise_data.get('warmup_required')
     )
 
     if not success:
@@ -368,6 +374,7 @@ def _update_exercise_prs_from_workout(set_logs: pd.DataFrame):
     Calculate and update PRs for each exercise based on completed set logs.
 
     For each exercise in the workout:
+    - Observed 1RM: Max weight where reps=1 from all history (auto-calculated)
     - Estimated 1RM: Best 1RM estimate from any working set (using Epley formula)
     - Max Set Volume: Best single set volume (weight × reps)
     - Max Exercise Volume: Total volume for this exercise in this workout session
@@ -385,6 +392,9 @@ def _update_exercise_prs_from_workout(set_logs: pd.DataFrame):
         working_sets = exercise_sets[exercise_sets['set_type'] == 'working']
         if working_sets.empty:
             continue
+
+        # Calculate observed 1RM from full history (max weight where reps=1)
+        observed_1rm = db.calculate_observed_1rm_from_history(int(exercise_id))
 
         # Calculate best estimated 1RM from this workout
         best_estimated_1rm = 0.0
@@ -433,6 +443,7 @@ def _update_exercise_prs_from_workout(set_logs: pd.DataFrame):
         # Update PRs in database (only updates if new value > existing)
         db.update_exercise_prs(
             exercise_id=int(exercise_id),
+            observed_1rm=observed_1rm,
             estimated_1rm=best_estimated_1rm if best_estimated_1rm > 0 else None,
             max_set_volume=max_set_volume if max_set_volume > 0 else None,
             max_exercise_volume=total_exercise_volume if total_exercise_volume > 0 else None

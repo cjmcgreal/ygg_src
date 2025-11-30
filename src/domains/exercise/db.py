@@ -29,9 +29,14 @@ def get_schema(table_name: str) -> List[str]:
             "secondary_muscle_groups", "progression_scheme",
             "rep_range_min", "rep_range_max", "target_reps",
             "rep_increment", "weight_increment", "created_at", "warmup_config",
+            # Exercise type and duration fields
+            "exercise_type",     # "reps" or "duration"
+            "target_duration",   # Target duration in seconds (for duration type)
+            "duration_increment", # Seconds to add per workout (for duration type)
+            "warmup_required",   # Boolean - whether to generate warmup sets
             # PR tracking fields
-            "observed_1rm",      # Manually entered 1RM (from actual 1RM test)
-            "estimated_1rm",     # Calculated from sets (updated after workouts)
+            "observed_1rm",      # Auto-calculated from history (max weight where reps=1)
+            "estimated_1rm",     # Calculated from sets using Epley formula
             "max_set_volume",    # Best single set (weight × reps)
             "max_exercise_volume" # Best total volume in one workout session
         ],
@@ -166,7 +171,10 @@ def create_exercise(
     rep_increment: Optional[int] = None,
     weight_increment: Optional[float] = None,
     warmup_config: Optional[str] = None,
-    observed_1rm: Optional[float] = None
+    exercise_type: str = "reps",
+    target_duration: Optional[int] = None,
+    duration_increment: Optional[int] = None,
+    warmup_required: bool = True
 ) -> int:
     """
     Create a new exercise
@@ -177,14 +185,17 @@ def create_exercise(
         description: Optional description
         primary_muscle_groups: Comma-separated muscle groups
         secondary_muscle_groups: Comma-separated muscle groups
-        progression_scheme: Either "rep_range", "linear_weight", or "linear_reps"
+        progression_scheme: Either "rep_range", "linear_weight", "linear_reps", or "duration"
         rep_range_min: Minimum reps for rep_range scheme
         rep_range_max: Maximum reps for rep_range scheme
         target_reps: Fixed/starting rep count for linear_weight or linear_reps scheme
         rep_increment: Rep increment for linear_reps scheme
         weight_increment: Weight increment in lbs/kg for rep_range and linear_weight schemes
-        warmup_config: JSON string with warmup configuration
-        observed_1rm: Manually entered 1RM (from actual max test)
+        warmup_config: JSON string with warmup configuration (legacy, prefer warmup_required)
+        exercise_type: "reps" or "duration"
+        target_duration: Target duration in seconds (for duration type)
+        duration_increment: Seconds to add per workout (for duration type)
+        warmup_required: Whether to generate warmup sets (default: True)
 
     Returns:
         New exercise ID
@@ -209,7 +220,11 @@ def create_exercise(
         'weight_increment': weight_increment,
         'created_at': now,
         'warmup_config': warmup_config,
-        'observed_1rm': observed_1rm,
+        'exercise_type': exercise_type,
+        'target_duration': target_duration,
+        'duration_increment': duration_increment,
+        'warmup_required': warmup_required,
+        'observed_1rm': None,  # Auto-calculated from history
         'estimated_1rm': None,
         'max_set_volume': None,
         'max_exercise_volume': None
@@ -235,7 +250,10 @@ def update_exercise(
     rep_increment: Optional[int] = None,
     weight_increment: Optional[float] = None,
     warmup_config: Optional[str] = None,
-    observed_1rm: Optional[float] = None
+    exercise_type: Optional[str] = None,
+    target_duration: Optional[int] = None,
+    duration_increment: Optional[int] = None,
+    warmup_required: Optional[bool] = None
 ) -> bool:
     """
     Update an existing exercise
@@ -247,14 +265,17 @@ def update_exercise(
         description: Optional description
         primary_muscle_groups: Comma-separated muscle groups
         secondary_muscle_groups: Comma-separated muscle groups
-        progression_scheme: Either "rep_range", "linear_weight", or "linear_reps"
+        progression_scheme: Either "rep_range", "linear_weight", "linear_reps", or "duration"
         rep_range_min: Minimum reps for rep_range scheme
         rep_range_max: Maximum reps for rep_range scheme
         target_reps: Fixed/starting rep count for linear_weight or linear_reps scheme
         rep_increment: Rep increment for linear_reps scheme
         weight_increment: Weight increment in lbs/kg for rep_range and linear_weight schemes
-        warmup_config: JSON string with warmup configuration
-        observed_1rm: Manually entered 1RM (from actual max test)
+        warmup_config: JSON string with warmup configuration (legacy)
+        exercise_type: "reps" or "duration"
+        target_duration: Target duration in seconds (for duration type)
+        duration_increment: Seconds to add per workout (for duration type)
+        warmup_required: Whether to generate warmup sets
 
     Returns:
         True if successful, False if exercise not found
@@ -289,8 +310,14 @@ def update_exercise(
         df.loc[mask, 'weight_increment'] = weight_increment
     if warmup_config is not None:
         df.loc[mask, 'warmup_config'] = warmup_config
-    if observed_1rm is not None:
-        df.loc[mask, 'observed_1rm'] = observed_1rm
+    if exercise_type is not None:
+        df.loc[mask, 'exercise_type'] = exercise_type
+    if target_duration is not None:
+        df.loc[mask, 'target_duration'] = target_duration
+    if duration_increment is not None:
+        df.loc[mask, 'duration_increment'] = duration_increment
+    if warmup_required is not None:
+        df.loc[mask, 'warmup_required'] = warmup_required
 
     save_table("exercises", df)
     return True
@@ -298,6 +325,7 @@ def update_exercise(
 
 def update_exercise_prs(
     exercise_id: int,
+    observed_1rm: Optional[float] = None,
     estimated_1rm: Optional[float] = None,
     max_set_volume: Optional[float] = None,
     max_exercise_volume: Optional[float] = None
@@ -309,6 +337,7 @@ def update_exercise_prs(
 
     Args:
         exercise_id: Exercise ID
+        observed_1rm: New observed 1RM (max weight where reps=1 from history)
         estimated_1rm: New estimated 1RM from workout
         max_set_volume: New max set volume (if PR)
         max_exercise_volume: New max exercise volume (if PR)
@@ -324,6 +353,13 @@ def update_exercise_prs(
 
     updated = False
     current = df.loc[mask].iloc[0]
+
+    # Update observed_1rm if greater than current
+    if observed_1rm is not None:
+        current_obs = current.get('observed_1rm')
+        if pd.isna(current_obs) or observed_1rm > current_obs:
+            df.loc[mask, 'observed_1rm'] = observed_1rm
+            updated = True
 
     # Update estimated_1rm if greater than current
     if estimated_1rm is not None:
@@ -350,6 +386,54 @@ def update_exercise_prs(
         save_table("exercises", df)
 
     return updated
+
+
+def calculate_observed_1rm_from_history(exercise_id: int) -> Optional[float]:
+    """
+    Calculate observed 1RM from exercise history.
+
+    Finds the heaviest weight where actual_reps = 1 from completed set logs.
+
+    Args:
+        exercise_id: Exercise ID
+
+    Returns:
+        Max weight lifted for a single rep, or None if no single-rep sets found
+    """
+    set_logs_df = load_table("set_logs")
+
+    if set_logs_df.empty:
+        return None
+
+    # Filter for this exercise, completed sets, working sets only, reps = 1
+    mask = (
+        (set_logs_df['exercise_id'] == exercise_id) &
+        (set_logs_df['completed'] == True) &
+        (set_logs_df['set_type'] == 'working')
+    )
+    exercise_sets = set_logs_df[mask]
+
+    if exercise_sets.empty:
+        return None
+
+    # Check actual_reps first, fall back to target_reps if actual is null
+    single_rep_sets = []
+    for _, row in exercise_sets.iterrows():
+        actual_reps = row.get('actual_reps')
+        if pd.isna(actual_reps):
+            actual_reps = row.get('target_reps')
+
+        if actual_reps == 1:
+            actual_weight = row.get('actual_weight')
+            if pd.isna(actual_weight):
+                actual_weight = row.get('target_weight')
+            if actual_weight and actual_weight > 0:
+                single_rep_sets.append(actual_weight)
+
+    if not single_rep_sets:
+        return None
+
+    return max(single_rep_sets)
 
 
 def get_exercise_display_name(exercise: Dict[str, Any]) -> str:

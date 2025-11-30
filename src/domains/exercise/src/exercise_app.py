@@ -69,13 +69,25 @@ def render_exercise_library():
             st.success(f"✅ Exercise '{st.session_state['exercise_created_success']}' created successfully!")
             del st.session_state['exercise_created_success']
 
-        # Progression scheme OUTSIDE form for dynamic updates
-        progression_scheme = st.radio(
-            "Progression Scheme *",
-            options=["Rep Range", "Linear Weight", "Linear Reps"],
-            help="Rep Range: Add reps until max, then add weight. Linear Weight: Add weight each workout. Linear Reps: Add reps each workout.",
-            key="exercise_progression_scheme"
+        # Exercise type OUTSIDE form for dynamic updates
+        exercise_type = st.radio(
+            "Exercise Type *",
+            options=["Reps-based", "Duration-based"],
+            help="Reps-based: Traditional exercises with reps. Duration-based: Timed exercises like planks or cardio.",
+            key="exercise_type_selection",
+            horizontal=True
         )
+
+        # Progression scheme OUTSIDE form for dynamic updates (only for reps-based)
+        if exercise_type == "Reps-based":
+            progression_scheme = st.radio(
+                "Progression Scheme *",
+                options=["Rep Range", "Linear Weight", "Linear Reps"],
+                help="Rep Range: Add reps until max, then add weight. Linear Weight: Add weight each workout. Linear Reps: Add reps each workout.",
+                key="exercise_progression_scheme"
+            )
+        else:
+            progression_scheme = "Duration"  # Duration-based exercises use duration progression
 
         with st.form("exercise_form", clear_on_submit=False):
             # Exercise name (required)
@@ -114,104 +126,105 @@ def render_exercise_library():
                 help="Select any secondary muscle groups"
             )
 
-            # Conditional inputs based on progression scheme
-            if progression_scheme == "Rep Range":
-                col_min, col_max = st.columns(2)
-                with col_min:
-                    rep_range_min = st.number_input(
-                        "Min Reps",
+            # Initialize progression values
+            rep_range_min = None
+            rep_range_max = None
+            target_reps = None
+            rep_increment = None
+            weight_increment = None
+            target_duration = None
+            duration_increment = None
+
+            # Duration-based exercise inputs
+            if exercise_type == "Duration-based":
+                st.write("**Duration Settings**")
+                col_dur, col_inc = st.columns(2)
+                with col_dur:
+                    target_duration = st.number_input(
+                        "Starting Duration (seconds)",
+                        min_value=5,
+                        max_value=3600,
+                        value=30,
+                        help="Initial target duration in seconds"
+                    )
+                with col_inc:
+                    duration_increment = st.number_input(
+                        "Duration Increment (seconds)",
+                        min_value=1,
+                        max_value=60,
+                        value=5,
+                        help="Seconds to add each successful workout"
+                    )
+            else:
+                # Reps-based exercise inputs
+                if progression_scheme == "Rep Range":
+                    col_min, col_max = st.columns(2)
+                    with col_min:
+                        rep_range_min = st.number_input(
+                            "Min Reps",
+                            min_value=1,
+                            max_value=50,
+                            value=8,
+                            help="Minimum reps in the range"
+                        )
+                    with col_max:
+                        rep_range_max = st.number_input(
+                            "Max Reps",
+                            min_value=1,
+                            max_value=50,
+                            value=12,
+                            help="Maximum reps in the range"
+                        )
+                    weight_increment = st.number_input(
+                        "Weight Increment (lbs) *",
+                        min_value=-50.0,
+                        max_value=50.0,
+                        value=5.0,
+                        step=0.5,
+                        help="Amount to change weight on successful workout (use negative for assisted exercises)"
+                    )
+                elif progression_scheme == "Linear Weight":
+                    target_reps = st.number_input(
+                        "Target Reps",
                         min_value=1,
                         max_value=50,
-                        value=8,
-                        help="Minimum reps in the range"
+                        value=5,
+                        help="Fixed number of reps for each set"
                     )
-                with col_max:
-                    rep_range_max = st.number_input(
-                        "Max Reps",
+                    weight_increment = st.number_input(
+                        "Weight Increment (lbs) *",
+                        min_value=-50.0,
+                        max_value=50.0,
+                        value=5.0,
+                        step=0.5,
+                        help="Amount to change weight on successful workout (use negative for assisted exercises)"
+                    )
+                else:  # Linear Reps
+                    target_reps = st.number_input(
+                        "Starting Reps",
                         min_value=1,
                         max_value=50,
-                        value=12,
-                        help="Maximum reps in the range"
+                        value=5,
+                        help="Starting number of reps for each set"
                     )
-                target_reps = None
-                rep_increment = None
-                weight_increment = st.number_input(
-                    "Weight Increment (lbs) *",
-                    min_value=-50.0,
-                    max_value=50.0,
-                    value=5.0,
-                    step=0.5,
-                    help="Amount to change weight on successful workout (use negative for assisted exercises)"
-                )
-            elif progression_scheme == "Linear Weight":
-                target_reps = st.number_input(
-                    "Target Reps",
-                    min_value=1,
-                    max_value=50,
-                    value=5,
-                    help="Fixed number of reps for each set"
-                )
-                rep_range_min = None
-                rep_range_max = None
-                rep_increment = None
-                weight_increment = st.number_input(
-                    "Weight Increment (lbs) *",
-                    min_value=-50.0,
-                    max_value=50.0,
-                    value=5.0,
-                    step=0.5,
-                    help="Amount to change weight on successful workout (use negative for assisted exercises)"
-                )
-            else:  # Linear Reps
-                target_reps = st.number_input(
-                    "Starting Reps",
-                    min_value=1,
-                    max_value=50,
-                    value=5,
-                    help="Starting number of reps for each set"
-                )
-                rep_range_min = None
-                rep_range_max = None
-                rep_increment = st.number_input(
-                    "Rep Increment *",
-                    min_value=1,
-                    max_value=10,
-                    value=1,
-                    help="Number of reps to add each successful workout"
-                )
-                weight_increment = None
-
-            # Warmup sets toggle
-            enable_warmup = st.checkbox(
-                "Enable Warmup Sets",
-                value=True,
-                help="Generate warmup sets before working sets"
-            )
-
-            warmup_config = None
-            if enable_warmup:
-                with st.expander("Warmup Configuration (Optional - Advanced)"):
-                    st.write("Default warmup configuration:")
-                    st.json(DEFAULT_WARMUP_CONFIG)
-                    st.info(
-                        "Default config generates 1-3 warmup sets based on working set intensity:\n"
-                        "- Low intensity (0-50% 1RM): 1 warmup set\n"
-                        "- Medium intensity (50-70% 1RM): 2 warmup sets\n"
-                        "- High intensity (70-100% 1RM): 3 warmup sets"
+                    rep_increment = st.number_input(
+                        "Rep Increment *",
+                        min_value=1,
+                        max_value=10,
+                        value=1,
+                        help="Number of reps to add each successful workout"
                     )
-                    # For MVP, use default config only
-                    warmup_config = json.dumps(DEFAULT_WARMUP_CONFIG)
 
-            # PR Tracking - Observed 1RM
+            # Warmup required checkbox (simplified from legacy warmup_config)
             st.write("---")
-            st.write("**PR Tracking (Optional)**")
-            observed_1rm = st.number_input(
-                "Observed 1RM (lbs)",
-                min_value=0.0,
-                value=0.0,
-                step=5.0,
-                help="Enter your tested one-rep max if known. Leave at 0 if unknown. Estimated 1RM will be calculated from your workout sets."
+            # Default: True for reps-based, False for duration-based
+            default_warmup = exercise_type == "Reps-based"
+            warmup_required = st.checkbox(
+                "Warmup Required",
+                value=default_warmup,
+                help="Generate warmup sets before working sets. Usually enabled for compound exercises, disabled for isolation/duration exercises."
             )
+            warmup_config = None  # Legacy field, no longer used
 
             # Submit button
             submit_button = st.form_submit_button("Create Exercise", use_container_width=True)
@@ -223,11 +236,15 @@ def render_exercise_library():
                     st.error("Exercise name is required")
                 elif not primary_muscles:
                     st.error("At least one primary muscle group is required")
-                elif progression_scheme == "Rep Range" and rep_range_min >= rep_range_max:
+                elif exercise_type == "Reps-based" and progression_scheme == "Rep Range" and rep_range_min >= rep_range_max:
                     st.error("Min reps must be less than max reps")
                 else:
-                    # Map UI progression scheme to database value
-                    if progression_scheme == "Rep Range":
+                    # Map UI values to database values
+                    exercise_type_db = "duration" if exercise_type == "Duration-based" else "reps"
+
+                    if exercise_type == "Duration-based":
+                        prog_scheme_db = "duration"
+                    elif progression_scheme == "Rep Range":
                         prog_scheme_db = "rep_range"
                     elif progression_scheme == "Linear Weight":
                         prog_scheme_db = "linear_weight"
@@ -248,7 +265,10 @@ def render_exercise_library():
                         "rep_increment": rep_increment,
                         "weight_increment": weight_increment,
                         "warmup_config": warmup_config,
-                        "observed_1rm": observed_1rm if observed_1rm > 0 else None
+                        "exercise_type": exercise_type_db,
+                        "target_duration": target_duration,
+                        "duration_increment": duration_increment,
+                        "warmup_required": warmup_required
                     }
 
                     try:
@@ -383,18 +403,40 @@ def render_exercise_library():
                             variant = exercise.get('variant', '')
                             if pd.notna(variant) and variant.strip():
                                 st.write(f"**Variant:** {variant.title()}")
+
+                            # Exercise type
+                            exercise_type = exercise.get('exercise_type', 'reps')
+                            type_label = "Duration-based" if exercise_type == 'duration' else "Reps-based"
+                            st.write(f"**Type:** {type_label}")
+
                             st.write(f"**Progression:** {exercise['progression_scheme'].replace('_', ' ').title()}")
 
                             if exercise['progression_scheme'] == 'rep_range':
                                 st.write(f"**Rep Range:** {int(exercise['rep_range_min'])} - {int(exercise['rep_range_max'])}")
+                            elif exercise_type == 'duration':
+                                target_dur = exercise.get('target_duration', 30)
+                                dur_inc = exercise.get('duration_increment', 5)
+                                if pd.notna(target_dur):
+                                    st.write(f"**Target Duration:** {int(target_dur)} sec")
+                                if pd.notna(dur_inc):
+                                    st.write(f"**Duration Increment:** +{int(dur_inc)} sec")
                             else:
                                 target = exercise.get('target_reps')
                                 if pd.notna(target):
                                     st.write(f"**Target Reps:** {int(target)}")
 
                         with col2:
-                            st.write(f"**Weight Increment:** {exercise['weight_increment']} lbs")
+                            if exercise_type != 'duration':
+                                st.write(f"**Weight Increment:** {exercise['weight_increment']} lbs")
                             st.write(f"**Created:** {exercise['created_at'].strftime('%Y-%m-%d') if pd.notna(exercise['created_at']) else 'N/A'}")
+
+                            # Warmup required
+                            warmup_req = exercise.get('warmup_required')
+                            if pd.notna(warmup_req):
+                                warmup_label = "Yes" if warmup_req else "No"
+                            else:
+                                warmup_label = "Yes (default)"
+                            st.write(f"**Warmup Required:** {warmup_label}")
 
                         # PR Section
                         st.write("---")
@@ -444,17 +486,6 @@ def render_exercise_library():
                             st.write("**Secondary Muscles:**")
                             st.write(exercise['secondary_muscle_groups'].replace(',', ', ').title())
 
-                        # Warmup config
-                        if pd.notna(exercise['warmup_config']) and exercise['warmup_config']:
-                            st.write("**Warmup Configuration:**")
-                            try:
-                                warmup_data = json.loads(exercise['warmup_config'])
-                                st.json(warmup_data)
-                            except json.JSONDecodeError:
-                                st.write("Enabled")
-                        else:
-                            st.write("**Warmup Sets:** Disabled")
-
                         # Edit button
                         st.write("---")
                         if st.button("✏️ Edit Exercise", key=f"edit_btn_{exercise['id']}", use_container_width=True):
@@ -470,26 +501,51 @@ def render_exercise_library():
         exercise_to_edit = db.get_exercise_by_id(st.session_state['editing_exercise_id'])
 
         if exercise_to_edit:
-            # Map database progression scheme to UI value
-            if exercise_to_edit['progression_scheme'] == 'rep_range':
-                prog_scheme_ui = "Rep Range"
-            elif exercise_to_edit['progression_scheme'] == 'linear_weight':
-                prog_scheme_ui = "Linear Weight"
+            # Determine current exercise type
+            current_exercise_type = exercise_to_edit.get('exercise_type', 'reps')
+            if current_exercise_type == 'duration':
+                exercise_type_ui = "Duration-based"
             else:
-                prog_scheme_ui = "Linear Reps"
+                exercise_type_ui = "Reps-based"
 
-            # Initialize progression scheme in session state if not set
-            if 'edit_prog_scheme' not in st.session_state:
-                st.session_state['edit_prog_scheme'] = prog_scheme_ui
+            # Initialize exercise type in session state if not set
+            if 'edit_exercise_type' not in st.session_state:
+                st.session_state['edit_exercise_type'] = exercise_type_ui
 
-            # Progression scheme selector outside form for dynamic updates
-            edit_progression_scheme = st.radio(
-                "Progression Scheme *",
-                options=["Rep Range", "Linear Weight", "Linear Reps"],
-                index=["Rep Range", "Linear Weight", "Linear Reps"].index(st.session_state['edit_prog_scheme']),
-                help="Rep Range: Add reps until max, then add weight. Linear Weight: Add weight each workout. Linear Reps: Add reps each workout.",
-                key="edit_exercise_progression_scheme"
+            # Exercise type selector outside form for dynamic updates
+            edit_exercise_type = st.radio(
+                "Exercise Type *",
+                options=["Reps-based", "Duration-based"],
+                index=["Reps-based", "Duration-based"].index(st.session_state['edit_exercise_type']),
+                help="Reps-based: Traditional exercises with reps. Duration-based: Timed exercises like planks or cardio.",
+                key="edit_exercise_type_selection",
+                horizontal=True
             )
+            st.session_state['edit_exercise_type'] = edit_exercise_type
+
+            # Map database progression scheme to UI value (only for reps-based)
+            if edit_exercise_type == "Reps-based":
+                if exercise_to_edit['progression_scheme'] == 'rep_range':
+                    prog_scheme_ui = "Rep Range"
+                elif exercise_to_edit['progression_scheme'] == 'linear_weight':
+                    prog_scheme_ui = "Linear Weight"
+                else:
+                    prog_scheme_ui = "Linear Reps"
+
+                # Initialize progression scheme in session state if not set
+                if 'edit_prog_scheme' not in st.session_state:
+                    st.session_state['edit_prog_scheme'] = prog_scheme_ui
+
+                # Progression scheme selector outside form for dynamic updates
+                edit_progression_scheme = st.radio(
+                    "Progression Scheme *",
+                    options=["Rep Range", "Linear Weight", "Linear Reps"],
+                    index=["Rep Range", "Linear Weight", "Linear Reps"].index(st.session_state['edit_prog_scheme']),
+                    help="Rep Range: Add reps until max, then add weight. Linear Weight: Add weight each workout. Linear Reps: Add reps each workout.",
+                    key="edit_exercise_progression_scheme"
+                )
+            else:
+                edit_progression_scheme = "Duration"
 
             # Update session state
             st.session_state['edit_prog_scheme'] = edit_progression_scheme
@@ -547,8 +603,40 @@ def render_exercise_library():
                     help="Select any secondary muscle groups"
                 )
 
-                # Conditional inputs based on progression scheme
-                if edit_progression_scheme == "Rep Range":
+                # Initialize all progression values
+                edit_rep_range_min = None
+                edit_rep_range_max = None
+                edit_target_reps = None
+                edit_rep_increment = None
+                edit_weight_increment = None
+                edit_target_duration = None
+                edit_duration_increment = None
+
+                # Conditional inputs based on exercise type and progression scheme
+                if edit_exercise_type == "Duration-based":
+                    st.write("**Duration Settings**")
+                    col_dur, col_inc = st.columns(2)
+                    with col_dur:
+                        dur_val = exercise_to_edit.get('target_duration')
+                        dur_val = int(dur_val) if pd.notna(dur_val) else 30
+                        edit_target_duration = st.number_input(
+                            "Target Duration (seconds)",
+                            min_value=5,
+                            max_value=3600,
+                            value=dur_val,
+                            help="Target duration in seconds"
+                        )
+                    with col_inc:
+                        dur_inc_val = exercise_to_edit.get('duration_increment')
+                        dur_inc_val = int(dur_inc_val) if pd.notna(dur_inc_val) else 5
+                        edit_duration_increment = st.number_input(
+                            "Duration Increment (seconds)",
+                            min_value=1,
+                            max_value=60,
+                            value=dur_inc_val,
+                            help="Seconds to add each successful workout"
+                        )
+                elif edit_progression_scheme == "Rep Range":
                     col_min, col_max = st.columns(2)
                     with col_min:
                         # Safe conversion with NaN check
@@ -571,8 +659,6 @@ def render_exercise_library():
                             value=rep_max_val,
                             help="Maximum reps in the range"
                         )
-                    edit_target_reps = None
-                    edit_rep_increment = None
                     weight_inc_val = exercise_to_edit.get('weight_increment')
                     weight_inc_val = float(weight_inc_val) if pd.notna(weight_inc_val) else 5.0
                     edit_weight_increment = st.number_input(
@@ -593,9 +679,6 @@ def render_exercise_library():
                         value=target_reps_val,
                         help="Fixed number of reps for each set"
                     )
-                    edit_rep_range_min = None
-                    edit_rep_range_max = None
-                    edit_rep_increment = None
                     weight_inc_val = exercise_to_edit.get('weight_increment')
                     weight_inc_val = float(weight_inc_val) if pd.notna(weight_inc_val) else 5.0
                     edit_weight_increment = st.number_input(
@@ -616,8 +699,6 @@ def render_exercise_library():
                         value=target_reps_val,
                         help="Starting number of reps for each set"
                     )
-                    edit_rep_range_min = None
-                    edit_rep_range_max = None
                     rep_inc_val = exercise_to_edit.get('rep_increment')
                     rep_inc_val = int(rep_inc_val) if pd.notna(rep_inc_val) else 1
                     edit_rep_increment = st.number_input(
@@ -627,7 +708,19 @@ def render_exercise_library():
                         value=rep_inc_val,
                         help="Number of reps to add each successful workout"
                     )
-                    edit_weight_increment = None
+
+                # Warmup required checkbox (simplified from legacy warmup_config)
+                st.write("---")
+                # Get current warmup_required value, default based on exercise type
+                current_warmup = exercise_to_edit.get('warmup_required')
+                if pd.isna(current_warmup):
+                    # Default: True for reps-based, False for duration-based
+                    current_warmup = edit_exercise_type == "Reps-based"
+                edit_warmup_required = st.checkbox(
+                    "Warmup Required",
+                    value=bool(current_warmup),
+                    help="Generate warmup sets before working sets. Usually enabled for compound exercises, disabled for isolation/duration exercises."
+                )
 
                 # PR Tracking - Observed 1RM
                 st.write("---")
@@ -653,6 +746,8 @@ def render_exercise_library():
                     del st.session_state['editing_exercise_id']
                     if 'edit_prog_scheme' in st.session_state:
                         del st.session_state['edit_prog_scheme']
+                    if 'edit_exercise_type' in st.session_state:
+                        del st.session_state['edit_exercise_type']
                     st.rerun()
 
                 if save_button:
@@ -661,11 +756,15 @@ def render_exercise_library():
                         st.error("Exercise name is required")
                     elif not edit_primary_muscles:
                         st.error("At least one primary muscle group is required")
-                    elif edit_progression_scheme == "Rep Range" and edit_rep_range_min >= edit_rep_range_max:
+                    elif edit_exercise_type == "Reps-based" and edit_progression_scheme == "Rep Range" and edit_rep_range_min >= edit_rep_range_max:
                         st.error("Min reps must be less than max reps")
                     else:
-                        # Map UI progression scheme to database value
-                        if edit_progression_scheme == "Rep Range":
+                        # Map UI values to database values
+                        edit_exercise_type_db = "duration" if edit_exercise_type == "Duration-based" else "reps"
+
+                        if edit_exercise_type == "Duration-based":
+                            prog_scheme_db = "duration"
+                        elif edit_progression_scheme == "Rep Range":
                             prog_scheme_db = "rep_range"
                         elif edit_progression_scheme == "Linear Weight":
                             prog_scheme_db = "linear_weight"
@@ -686,7 +785,11 @@ def render_exercise_library():
                             "rep_increment": edit_rep_increment,
                             "weight_increment": edit_weight_increment,
                             "warmup_config": exercise_to_edit.get('warmup_config'),
-                            "observed_1rm": edit_observed_1rm if edit_observed_1rm > 0 else None
+                            "observed_1rm": edit_observed_1rm if edit_observed_1rm > 0 else None,
+                            "exercise_type": edit_exercise_type_db,
+                            "target_duration": edit_target_duration,
+                            "duration_increment": edit_duration_increment,
+                            "warmup_required": edit_warmup_required
                         }
 
                         try:
@@ -695,6 +798,8 @@ def render_exercise_library():
                             del st.session_state['editing_exercise_id']
                             if 'edit_prog_scheme' in st.session_state:
                                 del st.session_state['edit_prog_scheme']
+                            if 'edit_exercise_type' in st.session_state:
+                                del st.session_state['edit_exercise_type']
                             st.rerun()
                         except ValueError as e:
                             st.error(f"Validation error: {str(e)}")
