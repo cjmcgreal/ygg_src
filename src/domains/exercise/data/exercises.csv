@@ -5,7 +5,7 @@ id,name,variant,description,primary_muscle_groups,secondary_muscle_groups,progre
 4,Plank,bodyweight,Forearm plank. Each rep = 1 sec hold,core,,linear_reps,,,35.0,5.0,,2025-11-15 11:06:13.351132,"{""enabled"": true, ""intensity_thresholds"": [{""min_percent_1rm"": 0, ""max_percent_1rm"": 50, ""warmup_sets"": 1}, {""min_percent_1rm"": 50, ""max_percent_1rm"": 70, ""warmup_sets"": 2}, {""min_percent_1rm"": 70, ""max_percent_1rm"": 100, ""warmup_sets"": 3}], ""warmup_percentages"": [40, 60, 80], ""warmup_reps"": [8, 6, 4]}",reps,,,False,,,,
 5,Machine-Assisted Pull-ups,machine,More weight = easier! The weight is the counterweight,back,,rep_range,3.0,6.0,,,-15.0,2025-11-15 11:17:54.055070,,reps,,,True,,,,
 6,Barbell Back Squat,barbell,,quadriceps,,linear_weight,,,10.0,,5.0,2025-11-15 11:23:14.017186,,reps,,,True,,,,
-7,Machine Chest Press,machine,,chest,,rep_range,10.0,15.0,,,15.0,2025-11-15 11:25:01.158570,,reps,,,True,,,,
+7,Machine Chest Press,machine,nan,chest,,rep_range,10.0,15.0,,,15.0,2025-11-15 11:25:01.158570,,reps,,,False,,,,
 8,Cable Chest Flys,cable,,chest,,rep_range,12.0,15.0,,,5.0,2025-11-15 11:25:45.072160,,reps,,,False,,,,
 9,Tricep Rope Pushdowns,cable,,triceps,,rep_range,12.0,15.0,,,5.0,2025-11-15 11:26:32.246469,,reps,,,False,,,,
 10,Incline Barbell Bench Press,barbell,,chest,,rep_range,5.0,8.0,,,5.0,2025-11-15 11:36:54.356111,"{""enabled"": true, ""intensity_thresholds"": [{""min_percent_1rm"": 0, ""max_percent_1rm"": 50, ""warmup_sets"": 1}, {""min_percent_1rm"": 50, ""max_percent_1rm"": 70, ""warmup_sets"": 2}, {""min_percent_1rm"": 70, ""max_percent_1rm"": 100, ""warmup_sets"": 3}], ""warmup_percentages"": [40, 60, 80], ""warmup_reps"": [8, 6, 4]}",reps,,,True,,,,

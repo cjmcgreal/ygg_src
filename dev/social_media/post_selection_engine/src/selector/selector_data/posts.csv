@@ -1,0 +1,101 @@
+id,title,description,topic,subtopic,effort,status
+1,Sunset contemporary flow,Video of contemporary dance piece during golden hour at the beach,dance,contemporary,3,draft
+2,Emotion in motion,Behind-the-scenes of learning a new contemporary routine with emotional storytelling,dance,contemporary,4,draft
+3,Salsa social night,Photos and short clips from Friday night salsa social dancing,dance,salsa,2,draft
+4,Partner work highlights,Video compilation of best partner combinations from salsa practice,dance,salsa,3,draft
+5,Hip hop freestyle session,Raw footage of freestyle hip hop session with friends,dance,hip_hop,2,draft
+6,Street dance battle,Coverage of local street dance battle event,dance,hip_hop,4,draft
+7,Ballet barre basics,Educational post about proper ballet barre technique,dance,ballet,3,draft
+8,Pointe work progress,Progress video showing improvement in pointe technique,dance,ballet,3,draft
+9,Swing at the park,Fun swing dancing session at outdoor summer event,dance,swing,2,draft
+10,Lindy hop vintage style,Dressed up in vintage attire for swing dance themed party,dance,swing,3,draft
+11,New choreography reveal,Premiere of original choreography I have been working on,dance,choreography,5,draft
+12,Acoustic guitar morning,Peaceful morning guitar practice session by the window,music,guitar_practice,2,draft
+13,Learning a new song,Time-lapse of learning a challenging guitar piece,music,guitar_practice,3,draft
+14,Fingerpicking exercises,Tutorial-style post on fingerpicking patterns I practice,music,guitar_practice,3,draft
+15,Beat making session,Screen recording of creating a new beat from scratch,music,music_production,4,draft
+16,Studio setup tour,Tour of my home music production setup and gear,music,music_production,3,draft
+17,Concert night memories,Photos and videos from amazing live concert experience,music,concerts,2,draft
+18,Festival highlights reel,Best moments from recent music festival,music,concerts,3,draft
+19,Music theory breakdown,Explaining chord progressions in my favorite songs,music,music_theory,4,draft
+20,Vinyl collection showcase,Showing off favorite records from my vinyl collection,music,vinyl_records,2,draft
+21,Record store finds,New additions to the collection from local record store,music,vinyl_records,2,draft
+22,Game night with the crew,Photos from epic board game night with friends,friends,group_activities,1,draft
+23,Beach day adventures,Group beach day with friends - volleyball and sunset,friends,group_activities,2,draft
+24,Hiking crew summit,Made it to the top with the hiking group,friends,group_activities,3,draft
+25,Dinner party hosting,Hosting friends for home-cooked dinner party,friends,dinner_parties,4,draft
+26,Themed dinner night,90s themed dinner party with costumes and music,friends,dinner_parties,3,draft
+27,College friends reunion,Annual reunion with college roommates,friends,reunions,2,draft
+28,Childhood friends catch up,Reconnecting with friends from hometown,friends,reunions,2,draft
+29,Spontaneous road trip,Last-minute adventure with friends to nearby town,friends,adventures,3,draft
+30,Escape room victory,Team conquered the hardest escape room in the city,friends,adventures,2,draft
+31,Hidden gem destination,Sharing an underrated travel destination discovery,travel,destinations,3,draft
+32,City guide series,Comprehensive guide to exploring a new city,travel,destinations,5,draft
+33,Weekend getaway spot,Perfect weekend escape just a few hours away,travel,destinations,2,draft
+34,Packing tips that work,My minimalist packing strategy for any trip,travel,travel_tips,2,draft
+35,Budget travel hacks,How I save money while traveling without sacrificing experience,travel,travel_tips,3,draft
+36,Neighborhood exploration,Discovering hidden spots in my own city,travel,local_exploration,2,draft
+37,Day trip discoveries,Best day trips from my home base,travel,local_exploration,3,draft
+38,Local secret spots,Sharing my favorite local hangouts tourists never find,travel,local_exploration,2,draft
+39,Mountain adventure,Hiking and camping in the mountains,travel,adventure_travel,4,draft
+40,Adrenaline experiences,Trying extreme sports while traveling,travel,adventure_travel,4,draft
+41,Capturing the journey,Travel photography tips from recent trip,travel,travel_photography,3,draft
+42,Golden hour abroad,Best sunset shots from travels,travel,travel_photography,2,draft
+43,Cultural immersion,Learning local traditions and customs abroad,travel,cultural_experiences,3,draft
+44,Local food culture,Exploring authentic cuisine with locals,travel,cultural_experiences,3,draft
+45,Side project launch,Announcing new coding side project,engineering_ai,coding_projects,4,draft
+46,Building in public,Progress update on current development project,engineering_ai,coding_projects,3,draft
+47,Code refactoring journey,Before and after of major code cleanup,engineering_ai,coding_projects,3,draft
+48,AI experiment results,Interesting findings from playing with new AI models,engineering_ai,ai_experiments,4,draft
+49,Prompt engineering tips,What I learned about effective prompting,engineering_ai,ai_experiments,3,draft
+50,AI tool comparison,Testing different AI tools for productivity,engineering_ai,ai_experiments,4,draft
+51,Tech stack thoughts,My opinions on current technology choices,engineering_ai,tech_insights,3,draft
+52,Industry trend analysis,Where I think tech is heading,engineering_ai,tech_insights,4,draft
+53,Dev environment setup,My complete development environment walkthrough,engineering_ai,tooling_setup,3,draft
+54,Productivity tools stack,Tools that make me more productive as a developer,engineering_ai,tooling_setup,2,draft
+55,Learning new framework,Documenting my journey learning something new,engineering_ai,learning_journey,3,draft
+56,From tutorial to project,How I go from tutorials to building real things,engineering_ai,learning_journey,3,draft
+57,Open source contribution,My first contribution to a major open source project,engineering_ai,open_source,4,draft
+58,Ground school update,Progress on pilot ground school studies,flying_pilot,flight_training,3,draft
+59,First solo flight,Celebrating major flight training milestone,flying_pilot,flight_training,2,draft
+60,Lesson learned in the air,Sharing a valuable flying lesson,flying_pilot,flight_training,3,draft
+61,Cockpit view sunset,Stunning views from the cockpit during golden hour,flying_pilot,aviation_views,2,draft
+62,Above the clouds,Photos from flying above the cloud layer,flying_pilot,aviation_views,2,draft
+63,Night flying magic,City lights from above during night flight,flying_pilot,aviation_views,3,draft
+64,A day in pilot life,What a typical flying day looks like,flying_pilot,pilot_life,3,draft
+65,Preflight routine,Walking through my preflight checklist process,flying_pilot,pilot_life,2,draft
+66,Rare aircraft spotted,Unusual aircraft spotted at the local airport,flying_pilot,aircraft_spotting,2,draft
+67,Airshow highlights,Best planes from recent airshow,flying_pilot,aircraft_spotting,3,draft
+68,Cross country planning,How I plan for longer flights,flying_pilot,flight_planning,4,draft
+69,Homemade pasta night,Making fresh pasta from scratch,cooking_restaurants,home_cooking,4,draft
+70,Weeknight meal prep,Simple and delicious meal prep ideas,cooking_restaurants,home_cooking,3,draft
+71,Comfort food classics,My take on classic comfort dishes,cooking_restaurants,home_cooking,3,draft
+72,New restaurant discovery,Found an amazing new spot in the city,cooking_restaurants,restaurant_reviews,2,draft
+73,Tasting menu experience,Multi-course dining experience review,cooking_restaurants,restaurant_reviews,3,draft
+74,Hidden gem eatery,Local restaurant that deserves more recognition,cooking_restaurants,restaurant_reviews,2,draft
+75,Recipe I perfected,Finally nailed this recipe after many attempts,cooking_restaurants,recipes,4,draft
+76,Family recipe share,Passing down a family recipe,cooking_restaurants,recipes,3,draft
+77,Plating practice,Improving food presentation skills,cooking_restaurants,food_photography,3,draft
+78,Food styling tips,How to make food look better in photos,cooking_restaurants,food_photography,3,draft
+79,Fusion experiment,Combining cuisines in unexpected ways,cooking_restaurants,culinary_experiments,4,draft
+80,New ingredient test,Trying an ingredient I have never cooked with,cooking_restaurants,culinary_experiments,3,draft
+81,Morning poem,Original poem inspired by quiet mornings,poetry_writing,original_poetry,2,draft
+82,Nature observation,Poetry about the changing seasons,poetry_writing,original_poetry,3,draft
+83,City sounds verse,Urban-inspired original poetry,poetry_writing,original_poetry,3,draft
+84,Emotional piece,Deeply personal poetry about life experiences,poetry_writing,original_poetry,4,draft
+85,Writing routine reveal,How I structure my writing practice,poetry_writing,writing_process,2,draft
+86,Overcoming writer block,Strategies that help when stuck,poetry_writing,writing_process,3,draft
+87,Books that inspire,Authors and works that influence my writing,poetry_writing,literary_inspiration,2,draft
+88,Poetry analysis,Breaking down a poem I love,poetry_writing,literary_inspiration,4,draft
+89,Flash fiction piece,Very short story in under 500 words,poetry_writing,short_stories,3,draft
+90,Story beginnings,Opening lines from stories in progress,poetry_writing,short_stories,2,draft
+91,Mountain landscape,Dramatic landscape shot from recent hike,photography,landscape,3,draft
+92,Urban landscape,City skyline during blue hour,photography,landscape,3,draft
+93,Portrait session,Results from portrait photography session,photography,portrait,4,draft
+94,Natural light portrait,Using only natural light for portraits,photography,portrait,3,draft
+95,City life moments,Candid street photography from downtown,photography,street_photography,2,draft
+96,People watching,Capturing everyday human moments,photography,street_photography,3,draft
+97,New lens review,Testing out new photography gear,photography,gear_reviews,3,draft
+98,Camera bag essentials,What I carry for different shoots,photography,gear_reviews,2,draft
+99,Editing workflow,My photo editing process step by step,photography,editing_tips,4,draft
+100,Photo walk results,Best shots from neighborhood photo walk,photography,photo_walks,2,draft

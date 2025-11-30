@@ -1,0 +1,96 @@
+{
+  "topics": {
+    "dance": {
+      "probability": 0.11,
+      "subtopics": {
+        "contemporary": 0.20,
+        "salsa": 0.20,
+        "hip_hop": 0.20,
+        "ballet": 0.15,
+        "swing": 0.15,
+        "choreography": 0.10
+      }
+    },
+    "music": {
+      "probability": 0.11,
+      "subtopics": {
+        "guitar_practice": 0.25,
+        "music_production": 0.20,
+        "concerts": 0.20,
+        "music_theory": 0.15,
+        "vinyl_records": 0.20
+      }
+    },
+    "friends": {
+      "probability": 0.11,
+      "subtopics": {
+        "group_activities": 0.25,
+        "dinner_parties": 0.25,
+        "reunions": 0.25,
+        "adventures": 0.25
+      }
+    },
+    "travel": {
+      "probability": 0.12,
+      "subtopics": {
+        "destinations": 0.20,
+        "travel_tips": 0.15,
+        "local_exploration": 0.20,
+        "adventure_travel": 0.15,
+        "travel_photography": 0.15,
+        "cultural_experiences": 0.15
+      }
+    },
+    "engineering_ai": {
+      "probability": 0.12,
+      "subtopics": {
+        "coding_projects": 0.20,
+        "ai_experiments": 0.20,
+        "tech_insights": 0.15,
+        "tooling_setup": 0.15,
+        "learning_journey": 0.15,
+        "open_source": 0.15
+      }
+    },
+    "flying_pilot": {
+      "probability": 0.11,
+      "subtopics": {
+        "flight_training": 0.25,
+        "aviation_views": 0.25,
+        "pilot_life": 0.20,
+        "aircraft_spotting": 0.15,
+        "flight_planning": 0.15
+      }
+    },
+    "cooking_restaurants": {
+      "probability": 0.11,
+      "subtopics": {
+        "home_cooking": 0.25,
+        "restaurant_reviews": 0.25,
+        "recipes": 0.20,
+        "food_photography": 0.15,
+        "culinary_experiments": 0.15
+      }
+    },
+    "poetry_writing": {
+      "probability": 0.10,
+      "subtopics": {
+        "original_poetry": 0.30,
+        "writing_process": 0.25,
+        "literary_inspiration": 0.20,
+        "short_stories": 0.25
+      }
+    },
+    "photography": {
+      "probability": 0.11,
+      "subtopics": {
+        "landscape": 0.20,
+        "portrait": 0.20,
+        "street_photography": 0.15,
+        "gear_reviews": 0.15,
+        "editing_tips": 0.15,
+        "photo_walks": 0.15
+      }
+    }
+  }
+}
