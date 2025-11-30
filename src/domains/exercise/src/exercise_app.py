@@ -81,8 +81,16 @@ def render_exercise_library():
             # Exercise name (required)
             exercise_name = st.text_input(
                 "Exercise Name *",
-                placeholder="e.g., Barbell Back Squat",
-                help="Enter the name of the exercise"
+                placeholder="e.g., Bench Press, Squat, Row",
+                help="Enter the base name of the exercise (variant is selected separately)"
+            )
+
+            # Variant selection
+            variant = st.selectbox(
+                "Variant *",
+                options=[v.title() for v in db.EXERCISE_VARIANTS],
+                index=0,  # Default to Barbell
+                help="Select the equipment/variant type for this exercise"
             )
 
             # Description (optional)
@@ -194,6 +202,17 @@ def render_exercise_library():
                     # For MVP, use default config only
                     warmup_config = json.dumps(DEFAULT_WARMUP_CONFIG)
 
+            # PR Tracking - Observed 1RM
+            st.write("---")
+            st.write("**PR Tracking (Optional)**")
+            observed_1rm = st.number_input(
+                "Observed 1RM (lbs)",
+                min_value=0.0,
+                value=0.0,
+                step=5.0,
+                help="Enter your tested one-rep max if known. Leave at 0 if unknown. Estimated 1RM will be calculated from your workout sets."
+            )
+
             # Submit button
             submit_button = st.form_submit_button("Create Exercise", use_container_width=True)
 
@@ -218,6 +237,7 @@ def render_exercise_library():
                     # Build exercise data dictionary
                     exercise_data = {
                         "name": exercise_name.strip(),
+                        "variant": variant.lower(),
                         "description": description.strip(),
                         "primary_muscle_groups": ",".join([m.lower() for m in primary_muscles]),
                         "secondary_muscle_groups": ",".join([m.lower() for m in secondary_muscles]) if secondary_muscles else "",
@@ -227,7 +247,8 @@ def render_exercise_library():
                         "target_reps": target_reps,
                         "rep_increment": rep_increment,
                         "weight_increment": weight_increment,
-                        "warmup_config": warmup_config
+                        "warmup_config": warmup_config,
+                        "observed_1rm": observed_1rm if observed_1rm > 0 else None
                     }
 
                     try:
@@ -297,31 +318,40 @@ def render_exercise_library():
             if filtered_df.empty:
                 st.warning("No exercises match your search criteria")
             else:
-                # Prepare display dataframe
-                display_df = filtered_df[[
-                    'name',
-                    'primary_muscle_groups',
-                    'progression_scheme',
-                    'weight_increment'
-                ]].copy()
+                # Create display dataframe with variant and PRs
+                display_df = filtered_df.copy()
+
+                # Format display name with variant (e.g., "Barbell Bench Press")
+                def format_display_name(row):
+                    name = row['name']
+                    variant = row.get('variant', '')
+                    if pd.notna(variant) and variant.strip():
+                        return f"{variant.title()} {name}"
+                    return name
+
+                display_df['display_name'] = display_df.apply(format_display_name, axis=1)
 
                 # Format columns for display
-                display_df['primary_muscle_groups'] = display_df['primary_muscle_groups'].apply(
+                display_df['muscles'] = display_df['primary_muscle_groups'].apply(
                     lambda x: x.replace(',', ', ').title() if pd.notna(x) else ''
                 )
-                display_df['progression_scheme'] = display_df['progression_scheme'].apply(
-                    lambda x: "Rep Range" if x == "rep_range" else "Linear Weight"
-                )
-                display_df['weight_increment'] = display_df['weight_increment'].apply(
-                    lambda x: f"{x} lbs"
-                )
 
-                # Rename columns for display
-                display_df.columns = ['Name', 'Primary Muscles', 'Progression', 'Weight Increment']
+                # Format PR columns
+                display_df['est_1rm'] = display_df['estimated_1rm'].apply(
+                    lambda x: f"{x:.0f}" if pd.notna(x) and x > 0 else "-"
+                ) if 'estimated_1rm' in display_df.columns else "-"
+
+                display_df['max_vol'] = display_df['max_set_volume'].apply(
+                    lambda x: f"{x:,.0f}" if pd.notna(x) and x > 0 else "-"
+                ) if 'max_set_volume' in display_df.columns else "-"
+
+                # Select and rename columns for display
+                final_display_df = display_df[['display_name', 'muscles', 'est_1rm', 'max_vol']].copy()
+                final_display_df.columns = ['Exercise', 'Muscles', 'Est 1RM', 'Best Set Vol']
 
                 # Display as interactive dataframe
                 st.dataframe(
-                    display_df,
+                    final_display_df,
                     use_container_width=True,
                     height=400,
                     hide_index=True
@@ -331,34 +361,75 @@ def render_exercise_library():
                 st.write("---")
                 st.write("**Exercise Details**")
 
-                # Select exercise to view details
-                exercise_names = filtered_df['name'].tolist()
-                selected_exercise_name = st.selectbox(
+                # Select exercise to view details - use display name with variant
+                exercise_display_options = display_df[['id', 'display_name']].set_index('id')['display_name'].to_dict()
+                selected_display_name = st.selectbox(
                     "Select exercise to view details",
-                    options=exercise_names,
+                    options=list(exercise_display_options.values()),
                     label_visibility="collapsed"
                 )
 
-                if selected_exercise_name:
-                    # Get exercise details
-                    exercise = filtered_df[filtered_df['name'] == selected_exercise_name].iloc[0]
+                if selected_display_name:
+                    # Get exercise details by finding matching display name
+                    selected_id = [k for k, v in exercise_display_options.items() if v == selected_display_name][0]
+                    exercise = filtered_df[filtered_df['id'] == selected_id].iloc[0]
 
-                    with st.expander(f"📋 {selected_exercise_name}", expanded=True):
-                        # Basic info
+                    with st.expander(f"📋 {selected_display_name}", expanded=True):
+                        # Basic info with variant
                         col1, col2 = st.columns(2)
 
                         with col1:
                             st.write(f"**ID:** {exercise['id']}")
+                            variant = exercise.get('variant', '')
+                            if pd.notna(variant) and variant.strip():
+                                st.write(f"**Variant:** {variant.title()}")
                             st.write(f"**Progression:** {exercise['progression_scheme'].replace('_', ' ').title()}")
 
                             if exercise['progression_scheme'] == 'rep_range':
                                 st.write(f"**Rep Range:** {int(exercise['rep_range_min'])} - {int(exercise['rep_range_max'])}")
                             else:
-                                st.write(f"**Target Reps:** {int(exercise['target_reps'])}")
+                                target = exercise.get('target_reps')
+                                if pd.notna(target):
+                                    st.write(f"**Target Reps:** {int(target)}")
 
                         with col2:
                             st.write(f"**Weight Increment:** {exercise['weight_increment']} lbs")
                             st.write(f"**Created:** {exercise['created_at'].strftime('%Y-%m-%d') if pd.notna(exercise['created_at']) else 'N/A'}")
+
+                        # PR Section
+                        st.write("---")
+                        st.write("**Personal Records**")
+                        pr_col1, pr_col2, pr_col3, pr_col4 = st.columns(4)
+
+                        with pr_col1:
+                            obs_1rm = exercise.get('observed_1rm')
+                            if pd.notna(obs_1rm) and obs_1rm > 0:
+                                st.metric("Observed 1RM", f"{obs_1rm:.0f} lbs")
+                            else:
+                                st.metric("Observed 1RM", "-")
+
+                        with pr_col2:
+                            est_1rm = exercise.get('estimated_1rm')
+                            if pd.notna(est_1rm) and est_1rm > 0:
+                                st.metric("Estimated 1RM", f"{est_1rm:.0f} lbs")
+                            else:
+                                st.metric("Estimated 1RM", "-")
+
+                        with pr_col3:
+                            max_set_vol = exercise.get('max_set_volume')
+                            if pd.notna(max_set_vol) and max_set_vol > 0:
+                                st.metric("Best Set Volume", f"{max_set_vol:,.0f}")
+                            else:
+                                st.metric("Best Set Volume", "-")
+
+                        with pr_col4:
+                            max_ex_vol = exercise.get('max_exercise_volume')
+                            if pd.notna(max_ex_vol) and max_ex_vol > 0:
+                                st.metric("Best Workout Vol", f"{max_ex_vol:,.0f}")
+                            else:
+                                st.metric("Best Workout Vol", "-")
+
+                        st.write("---")
 
                         # Description
                         if pd.notna(exercise['description']) and exercise['description'].strip():
@@ -428,7 +499,25 @@ def render_exercise_library():
                 edit_name = st.text_input(
                     "Exercise Name *",
                     value=exercise_to_edit['name'],
-                    help="Enter the name of the exercise"
+                    help="Enter the base name of the exercise (variant is selected separately)"
+                )
+
+                # Variant selection
+                current_variant = exercise_to_edit.get('variant', 'barbell')
+                if not pd.notna(current_variant) or not current_variant.strip():
+                    current_variant = 'barbell'
+                variant_options = [v.title() for v in db.EXERCISE_VARIANTS]
+                current_variant_index = 0
+                try:
+                    current_variant_index = [v.lower() for v in db.EXERCISE_VARIANTS].index(current_variant.lower())
+                except ValueError:
+                    current_variant_index = 0
+
+                edit_variant = st.selectbox(
+                    "Variant *",
+                    options=variant_options,
+                    index=current_variant_index,
+                    help="Select the equipment/variant type for this exercise"
                 )
 
                 # Description
@@ -540,6 +629,19 @@ def render_exercise_library():
                     )
                     edit_weight_increment = None
 
+                # PR Tracking - Observed 1RM
+                st.write("---")
+                st.write("**PR Tracking**")
+                obs_1rm_val = exercise_to_edit.get('observed_1rm')
+                obs_1rm_val = float(obs_1rm_val) if pd.notna(obs_1rm_val) and obs_1rm_val > 0 else 0.0
+                edit_observed_1rm = st.number_input(
+                    "Observed 1RM (lbs)",
+                    min_value=0.0,
+                    value=obs_1rm_val,
+                    step=5.0,
+                    help="Enter your tested one-rep max if known. Leave at 0 if unknown."
+                )
+
                 # Form buttons
                 col1, col2 = st.columns([1, 1])
                 with col1:
@@ -573,6 +675,7 @@ def render_exercise_library():
                         # Build exercise data
                         exercise_data = {
                             "name": edit_name.strip(),
+                            "variant": edit_variant.lower(),
                             "description": edit_description.strip(),
                             "primary_muscle_groups": ",".join([m.lower() for m in edit_primary_muscles]),
                             "secondary_muscle_groups": ",".join([m.lower() for m in edit_secondary_muscles]) if edit_secondary_muscles else "",
@@ -582,7 +685,8 @@ def render_exercise_library():
                             "target_reps": edit_target_reps,
                             "rep_increment": edit_rep_increment,
                             "weight_increment": edit_weight_increment,
-                            "warmup_config": exercise_to_edit.get('warmup_config')
+                            "warmup_config": exercise_to_edit.get('warmup_config'),
+                            "observed_1rm": edit_observed_1rm if edit_observed_1rm > 0 else None
                         }
 
                         try:

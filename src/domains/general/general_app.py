@@ -11,6 +11,6 @@ src_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src')
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-from general_app import render_general_app
+from dashboard import render_general_app
 
 __all__ = ['render_general_app']

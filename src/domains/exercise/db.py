@@ -25,10 +25,15 @@ def get_schema(table_name: str) -> List[str]:
     """
     schemas = {
         "exercises": [
-            "id", "name", "description", "primary_muscle_groups",
+            "id", "name", "variant", "description", "primary_muscle_groups",
             "secondary_muscle_groups", "progression_scheme",
             "rep_range_min", "rep_range_max", "target_reps",
-            "rep_increment", "weight_increment", "created_at", "warmup_config"
+            "rep_increment", "weight_increment", "created_at", "warmup_config",
+            # PR tracking fields
+            "observed_1rm",      # Manually entered 1RM (from actual 1RM test)
+            "estimated_1rm",     # Calculated from sets (updated after workouts)
+            "max_set_volume",    # Best single set (weight × reps)
+            "max_exercise_volume" # Best total volume in one workout session
         ],
         "workouts": [
             "id", "name", "exercise_ids", "created_at", "notes"
@@ -135,8 +140,22 @@ def get_exercise_by_id(exercise_id: int) -> Optional[Dict[str, Any]]:
     return result.iloc[0].to_dict()
 
 
+# Available exercise variants
+EXERCISE_VARIANTS = [
+    "barbell",
+    "dumbbell",
+    "machine",
+    "cable",
+    "bodyweight",
+    "kettlebell",
+    "bands",
+    "other"
+]
+
+
 def create_exercise(
     name: str,
+    variant: str = "barbell",
     description: str = "",
     primary_muscle_groups: str = "",
     secondary_muscle_groups: str = "",
@@ -146,13 +165,15 @@ def create_exercise(
     target_reps: Optional[int] = None,
     rep_increment: Optional[int] = None,
     weight_increment: Optional[float] = None,
-    warmup_config: Optional[str] = None
+    warmup_config: Optional[str] = None,
+    observed_1rm: Optional[float] = None
 ) -> int:
     """
     Create a new exercise
 
     Args:
-        name: Exercise name
+        name: Exercise name (e.g., "Bench Press", "Chest Press")
+        variant: Equipment variant (barbell, dumbbell, machine, cable, etc.)
         description: Optional description
         primary_muscle_groups: Comma-separated muscle groups
         secondary_muscle_groups: Comma-separated muscle groups
@@ -163,6 +184,7 @@ def create_exercise(
         rep_increment: Rep increment for linear_reps scheme
         weight_increment: Weight increment in lbs/kg for rep_range and linear_weight schemes
         warmup_config: JSON string with warmup configuration
+        observed_1rm: Manually entered 1RM (from actual max test)
 
     Returns:
         New exercise ID
@@ -175,6 +197,7 @@ def create_exercise(
     new_row = pd.DataFrame([{
         'id': new_id,
         'name': name,
+        'variant': variant.lower(),
         'description': description,
         'primary_muscle_groups': primary_muscle_groups,
         'secondary_muscle_groups': secondary_muscle_groups,
@@ -185,7 +208,11 @@ def create_exercise(
         'rep_increment': rep_increment,
         'weight_increment': weight_increment,
         'created_at': now,
-        'warmup_config': warmup_config
+        'warmup_config': warmup_config,
+        'observed_1rm': observed_1rm,
+        'estimated_1rm': None,
+        'max_set_volume': None,
+        'max_exercise_volume': None
     }])
 
     df = pd.concat([df, new_row], ignore_index=True)
@@ -197,6 +224,7 @@ def create_exercise(
 def update_exercise(
     exercise_id: int,
     name: Optional[str] = None,
+    variant: Optional[str] = None,
     description: Optional[str] = None,
     primary_muscle_groups: Optional[str] = None,
     secondary_muscle_groups: Optional[str] = None,
@@ -206,7 +234,8 @@ def update_exercise(
     target_reps: Optional[int] = None,
     rep_increment: Optional[int] = None,
     weight_increment: Optional[float] = None,
-    warmup_config: Optional[str] = None
+    warmup_config: Optional[str] = None,
+    observed_1rm: Optional[float] = None
 ) -> bool:
     """
     Update an existing exercise
@@ -214,6 +243,7 @@ def update_exercise(
     Args:
         exercise_id: Exercise ID to update
         name: Exercise name
+        variant: Equipment variant (barbell, dumbbell, machine, cable, etc.)
         description: Optional description
         primary_muscle_groups: Comma-separated muscle groups
         secondary_muscle_groups: Comma-separated muscle groups
@@ -224,6 +254,7 @@ def update_exercise(
         rep_increment: Rep increment for linear_reps scheme
         weight_increment: Weight increment in lbs/kg for rep_range and linear_weight schemes
         warmup_config: JSON string with warmup configuration
+        observed_1rm: Manually entered 1RM (from actual max test)
 
     Returns:
         True if successful, False if exercise not found
@@ -236,6 +267,8 @@ def update_exercise(
 
     if name is not None:
         df.loc[mask, 'name'] = name
+    if variant is not None:
+        df.loc[mask, 'variant'] = variant.lower()
     if description is not None:
         df.loc[mask, 'description'] = description
     if primary_muscle_groups is not None:
@@ -256,9 +289,85 @@ def update_exercise(
         df.loc[mask, 'weight_increment'] = weight_increment
     if warmup_config is not None:
         df.loc[mask, 'warmup_config'] = warmup_config
+    if observed_1rm is not None:
+        df.loc[mask, 'observed_1rm'] = observed_1rm
 
     save_table("exercises", df)
     return True
+
+
+def update_exercise_prs(
+    exercise_id: int,
+    estimated_1rm: Optional[float] = None,
+    max_set_volume: Optional[float] = None,
+    max_exercise_volume: Optional[float] = None
+) -> bool:
+    """
+    Update exercise PR fields (called after workout completion)
+
+    Only updates if new value is greater than existing (true PR).
+
+    Args:
+        exercise_id: Exercise ID
+        estimated_1rm: New estimated 1RM from workout
+        max_set_volume: New max set volume (if PR)
+        max_exercise_volume: New max exercise volume (if PR)
+
+    Returns:
+        True if any PR was updated
+    """
+    df = load_table("exercises")
+    mask = df['id'] == exercise_id
+
+    if not mask.any():
+        return False
+
+    updated = False
+    current = df.loc[mask].iloc[0]
+
+    # Update estimated_1rm if greater than current
+    if estimated_1rm is not None:
+        current_1rm = current.get('estimated_1rm')
+        if pd.isna(current_1rm) or estimated_1rm > current_1rm:
+            df.loc[mask, 'estimated_1rm'] = estimated_1rm
+            updated = True
+
+    # Update max_set_volume if greater than current
+    if max_set_volume is not None:
+        current_set_vol = current.get('max_set_volume')
+        if pd.isna(current_set_vol) or max_set_volume > current_set_vol:
+            df.loc[mask, 'max_set_volume'] = max_set_volume
+            updated = True
+
+    # Update max_exercise_volume if greater than current
+    if max_exercise_volume is not None:
+        current_ex_vol = current.get('max_exercise_volume')
+        if pd.isna(current_ex_vol) or max_exercise_volume > current_ex_vol:
+            df.loc[mask, 'max_exercise_volume'] = max_exercise_volume
+            updated = True
+
+    if updated:
+        save_table("exercises", df)
+
+    return updated
+
+
+def get_exercise_display_name(exercise: Dict[str, Any]) -> str:
+    """
+    Get formatted display name for an exercise including variant
+
+    Args:
+        exercise: Exercise dict
+
+    Returns:
+        Formatted string like "Barbell Bench Press" or "Machine Chest Press"
+    """
+    variant = exercise.get('variant', '')
+    name = exercise.get('name', 'Unknown')
+
+    if variant and variant != 'other':
+        return f"{variant.title()} {name}"
+    return name
 
 
 # ============================================================================

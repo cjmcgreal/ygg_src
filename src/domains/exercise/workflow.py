@@ -6,6 +6,7 @@ All workflows are framework-independent - no Streamlit dependencies
 
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+import pandas as pd
 import db
 import logic
 import analysis
@@ -68,6 +69,7 @@ def handle_create_exercise(exercise_data: Dict[str, Any]) -> int:
     # Create exercise using db layer
     exercise_id = db.create_exercise(
         name=exercise_data.get('name'),
+        variant=exercise_data.get('variant', 'barbell'),
         description=exercise_data.get('description', ''),
         primary_muscle_groups=exercise_data.get('primary_muscle_groups', ''),
         secondary_muscle_groups=exercise_data.get('secondary_muscle_groups', ''),
@@ -77,7 +79,8 @@ def handle_create_exercise(exercise_data: Dict[str, Any]) -> int:
         target_reps=exercise_data.get('target_reps'),
         rep_increment=exercise_data.get('rep_increment'),
         weight_increment=exercise_data.get('weight_increment'),
-        warmup_config=exercise_data.get('warmup_config')
+        warmup_config=exercise_data.get('warmup_config'),
+        observed_1rm=exercise_data.get('observed_1rm')
     )
 
     return exercise_id
@@ -142,6 +145,7 @@ def handle_update_exercise(exercise_id: int, exercise_data: Dict[str, Any]) -> b
     success = db.update_exercise(
         exercise_id=exercise_id,
         name=exercise_data.get('name'),
+        variant=exercise_data.get('variant'),
         description=exercise_data.get('description', ''),
         primary_muscle_groups=exercise_data.get('primary_muscle_groups', ''),
         secondary_muscle_groups=exercise_data.get('secondary_muscle_groups', ''),
@@ -151,7 +155,8 @@ def handle_update_exercise(exercise_id: int, exercise_data: Dict[str, Any]) -> b
         target_reps=exercise_data.get('target_reps'),
         rep_increment=exercise_data.get('rep_increment'),
         weight_increment=exercise_data.get('weight_increment'),
-        warmup_config=exercise_data.get('warmup_config')
+        warmup_config=exercise_data.get('warmup_config'),
+        observed_1rm=exercise_data.get('observed_1rm')
     )
 
     if not success:
@@ -350,7 +355,88 @@ def handle_complete_workout(
         muscle_groups_trained=workout_metadata['muscle_groups_trained']
     )
 
+    # =========================================================================
+    # Update Exercise PRs based on completed sets
+    # =========================================================================
+    _update_exercise_prs_from_workout(all_set_logs)
+
     return workout_metadata
+
+
+def _update_exercise_prs_from_workout(set_logs: pd.DataFrame):
+    """
+    Calculate and update PRs for each exercise based on completed set logs.
+
+    For each exercise in the workout:
+    - Estimated 1RM: Best 1RM estimate from any working set (using Epley formula)
+    - Max Set Volume: Best single set volume (weight × reps)
+    - Max Exercise Volume: Total volume for this exercise in this workout session
+
+    Only updates if the new value is a PR (greater than current value).
+    """
+    if set_logs.empty:
+        return
+
+    # Group sets by exercise_id
+    for exercise_id in set_logs['exercise_id'].unique():
+        exercise_sets = set_logs[set_logs['exercise_id'] == exercise_id]
+
+        # Only consider working sets (not warmups) for PRs
+        working_sets = exercise_sets[exercise_sets['set_type'] == 'working']
+        if working_sets.empty:
+            continue
+
+        # Calculate best estimated 1RM from this workout
+        best_estimated_1rm = 0.0
+        for _, set_row in working_sets.iterrows():
+            # Use actual values if available, otherwise target
+            weight = set_row.get('actual_weight')
+            if pd.isna(weight):
+                weight = set_row.get('target_weight', 0)
+
+            reps = set_row.get('actual_reps')
+            if pd.isna(reps):
+                reps = set_row.get('target_reps', 0)
+
+            if weight > 0 and reps > 0:
+                # Calculate 1RM for this set
+                set_1rm = analysis.estimate_one_rep_max(float(weight), int(reps))
+                best_estimated_1rm = max(best_estimated_1rm, set_1rm)
+
+        # Calculate max set volume (best single set)
+        max_set_volume = 0.0
+        for _, set_row in working_sets.iterrows():
+            weight = set_row.get('actual_weight')
+            if pd.isna(weight):
+                weight = set_row.get('target_weight', 0)
+
+            reps = set_row.get('actual_reps')
+            if pd.isna(reps):
+                reps = set_row.get('target_reps', 0)
+
+            set_volume = float(weight) * int(reps)
+            max_set_volume = max(max_set_volume, set_volume)
+
+        # Calculate total exercise volume for this workout session
+        total_exercise_volume = 0.0
+        for _, set_row in working_sets.iterrows():
+            weight = set_row.get('actual_weight')
+            if pd.isna(weight):
+                weight = set_row.get('target_weight', 0)
+
+            reps = set_row.get('actual_reps')
+            if pd.isna(reps):
+                reps = set_row.get('target_reps', 0)
+
+            total_exercise_volume += float(weight) * int(reps)
+
+        # Update PRs in database (only updates if new value > existing)
+        db.update_exercise_prs(
+            exercise_id=int(exercise_id),
+            estimated_1rm=best_estimated_1rm if best_estimated_1rm > 0 else None,
+            max_set_volume=max_set_volume if max_set_volume > 0 else None,
+            max_exercise_volume=total_exercise_volume if total_exercise_volume > 0 else None
+        )
 
 
 def get_workout_history(
@@ -538,6 +624,10 @@ def handle_log_old_workout(
         status="completed",
         notes=notes
     )
+
+    # Update Exercise PRs based on logged sets
+    all_set_logs = db.get_set_logs_for_workout(workout_log_id)
+    _update_exercise_prs_from_workout(all_set_logs)
 
     return workout_log_id
 
