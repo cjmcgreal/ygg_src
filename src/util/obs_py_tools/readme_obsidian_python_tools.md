@@ -1,0 +1,1 @@
+A catch all for python tools that operate on an obsidian vault

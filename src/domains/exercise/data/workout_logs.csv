@@ -8,3 +8,4 @@ id,workout_id,start_time,end_time,duration_seconds,total_volume,total_calories,t
 7,1.0,2025-08-05 11:43:30.233627,,,,,,,completed,
 8,1.0,2025-08-05 11:43:51.725152,,,,,,,completed,
 9,,2025-08-05 12:15:06.468267,2025-08-05 12:15:06.468267,0.0,0.0,0.0,1.0,"core,back",completed,
+10,1.0,2025-11-27 12:51:55.437367,,,,,,,in_progress,

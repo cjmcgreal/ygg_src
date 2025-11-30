@@ -1,0 +1,21 @@
+---
+created: 2025-11-29
+---
+**Chest - Barbell Bench Press** 
+- Strategic Goal: 3 x 10 x 135 lb
+- Goal today: 3 x 10 x 80 lb 
+- PRs: 1 RM 140 lb.  Set Volume: 950 lb. Exercise volume: 2000 lb
+- [ ] Warmup set 1: 9 x 45 lb (0 lb per side). 
+	- Last: 10 x 45 lb (2025-07-28) 
+- [ ] Warmup set 2: 6 x 60 lb (5 + 2.5 lb per side). 
+	- Last: 11 x 60 lb (2025-07-28)
+- [ ] Warmup set 3: 3 x 70 lb (10 + 2.5 lb per side). 
+	- New
+- [ ] Main Set 1: 10 x 80 lb. (10 + 5 + 2.5 lb per side). 
+	- Last: 10 x 80 lb (2025-07-28) 
+- [ ] Main Set 2: 10 x 80 lb. (10 + 5 + 2.5 lb per side). 
+	- Last: 10 x 80 lb (2025-07-28)
+- [ ] Main Set 3: 10 x 80 lb. (10 + 5 + 2.5 lb per side) 
+	- Last: 7 x 80 lb (2025-07-28)
+- [ ] Cooldown Set 1:  AMRAP x 65 lb. (10 lb per side). 
+	- Last: 7 x 65 lb (2025-07-28)

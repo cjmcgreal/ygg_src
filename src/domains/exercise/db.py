@@ -33,6 +33,15 @@ def get_schema(table_name: str) -> List[str]:
         "workouts": [
             "id", "name", "exercise_ids", "created_at", "notes"
         ],
+        "workout_templates": [
+            "id", "name", "label", "slot_definitions", "created_at", "notes"
+        ],
+        "workout_cycle_state": [
+            "id", "active_labels", "current_index", "updated_at"
+        ],
+        "exercise_selections": [
+            "id", "template_id", "slot_order", "exercise_id", "selected_at"
+        ],
         "workout_logs": [
             "id", "workout_id", "start_time", "end_time",
             "duration_seconds", "total_volume", "total_calories",
@@ -70,6 +79,9 @@ def load_table(table_name: str) -> pd.DataFrame:
     datetime_columns = {
         "exercises": ["created_at"],
         "workouts": ["created_at"],
+        "workout_templates": ["created_at"],
+        "workout_cycle_state": ["updated_at"],
+        "exercise_selections": ["selected_at"],
         "workout_logs": ["start_time", "end_time"],
         "set_logs": ["completed_at"],
     }
@@ -315,6 +327,389 @@ def create_workout(name: str, exercise_ids: List[int], notes: str = "") -> int:
     save_table("workouts", df)
 
     return new_id
+
+
+# ============================================================================
+# WORKOUT TEMPLATES (slot-based)
+# ============================================================================
+
+def get_all_workout_templates() -> pd.DataFrame:
+    """Get all workout templates"""
+    return load_table("workout_templates")
+
+
+def get_workout_template_by_id(template_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Get a single workout template by ID
+
+    Args:
+        template_id: Template ID
+
+    Returns:
+        Template dict or None if not found
+    """
+    df = load_table("workout_templates")
+    result = df[df['id'] == template_id]
+    if result.empty:
+        return None
+
+    template = result.iloc[0].to_dict()
+    # Parse slot_definitions from JSON string
+    import json
+    if template.get('slot_definitions'):
+        try:
+            template['slot_definitions'] = json.loads(template['slot_definitions'])
+        except (json.JSONDecodeError, TypeError):
+            template['slot_definitions'] = []
+    else:
+        template['slot_definitions'] = []
+
+    return template
+
+
+def get_workout_template_by_label(label: str) -> Optional[Dict[str, Any]]:
+    """
+    Get a workout template by its label (A, B, C, etc.)
+
+    Args:
+        label: Single letter label
+
+    Returns:
+        Template dict or None if not found
+    """
+    df = load_table("workout_templates")
+    result = df[df['label'] == label.upper()]
+    if result.empty:
+        return None
+
+    template = result.iloc[0].to_dict()
+    # Parse slot_definitions from JSON string
+    import json
+    if template.get('slot_definitions'):
+        try:
+            template['slot_definitions'] = json.loads(template['slot_definitions'])
+        except (json.JSONDecodeError, TypeError):
+            template['slot_definitions'] = []
+    else:
+        template['slot_definitions'] = []
+
+    return template
+
+
+def create_workout_template(
+    name: str,
+    label: str,
+    slot_definitions: List[Dict[str, Any]],
+    notes: str = ""
+) -> int:
+    """
+    Create a new workout template with slot definitions
+
+    Args:
+        name: Template name (e.g., "Push Day")
+        label: Single letter label (A, B, C, etc.)
+        slot_definitions: List of slot dicts with muscle_group, intensity, sets
+        notes: Optional notes
+
+    Returns:
+        New template ID
+    """
+    import json
+    df = load_table("workout_templates")
+
+    new_id = 1 if df.empty else int(df['id'].max() + 1)
+    now = datetime.now()
+
+    # Convert slot_definitions to JSON string
+    slot_json = json.dumps(slot_definitions)
+
+    new_row = pd.DataFrame([{
+        'id': new_id,
+        'name': name,
+        'label': label.upper(),
+        'slot_definitions': slot_json,
+        'created_at': now,
+        'notes': notes
+    }])
+
+    df = pd.concat([df, new_row], ignore_index=True)
+    save_table("workout_templates", df)
+
+    return new_id
+
+
+def update_workout_template(
+    template_id: int,
+    name: Optional[str] = None,
+    label: Optional[str] = None,
+    slot_definitions: Optional[List[Dict[str, Any]]] = None,
+    notes: Optional[str] = None
+) -> bool:
+    """
+    Update an existing workout template
+
+    Args:
+        template_id: Template ID to update
+        name: Template name
+        label: Single letter label
+        slot_definitions: List of slot dicts
+        notes: Optional notes
+
+    Returns:
+        True if successful, False if template not found
+    """
+    import json
+    df = load_table("workout_templates")
+    mask = df['id'] == template_id
+
+    if not mask.any():
+        return False
+
+    if name is not None:
+        df.loc[mask, 'name'] = name
+    if label is not None:
+        df.loc[mask, 'label'] = label.upper()
+    if slot_definitions is not None:
+        df.loc[mask, 'slot_definitions'] = json.dumps(slot_definitions)
+    if notes is not None:
+        df.loc[mask, 'notes'] = notes
+
+    save_table("workout_templates", df)
+    return True
+
+
+def delete_workout_template(template_id: int) -> bool:
+    """
+    Delete a workout template
+
+    Args:
+        template_id: Template ID to delete
+
+    Returns:
+        True if successful, False if template not found
+    """
+    df = load_table("workout_templates")
+    mask = df['id'] == template_id
+
+    if not mask.any():
+        return False
+
+    df = df[~mask]
+    save_table("workout_templates", df)
+    return True
+
+
+# ============================================================================
+# WORKOUT CYCLE STATE
+# ============================================================================
+
+def get_cycle_state() -> Dict[str, Any]:
+    """
+    Get the current workout cycle state (singleton)
+
+    Returns:
+        Dict with active_labels, current_index, updated_at
+        Creates default if not exists
+    """
+    df = load_table("workout_cycle_state")
+
+    if df.empty:
+        # Create default state with all templates active
+        templates_df = load_table("workout_templates")
+        if templates_df.empty:
+            active_labels = ""
+        else:
+            active_labels = ",".join(templates_df['label'].dropna().unique())
+
+        return {
+            'id': 1,
+            'active_labels': active_labels,
+            'current_index': 0,
+            'updated_at': None
+        }
+
+    state = df.iloc[0].to_dict()
+    return state
+
+
+def update_cycle_state(
+    active_labels: Optional[str] = None,
+    current_index: Optional[int] = None
+) -> bool:
+    """
+    Update the workout cycle state
+
+    Args:
+        active_labels: Comma-separated active workout labels
+        current_index: Current position in rotation
+
+    Returns:
+        True if successful
+    """
+    df = load_table("workout_cycle_state")
+    now = datetime.now()
+
+    if df.empty:
+        # Create new state
+        new_row = pd.DataFrame([{
+            'id': 1,
+            'active_labels': active_labels or "",
+            'current_index': current_index or 0,
+            'updated_at': now
+        }])
+        save_table("workout_cycle_state", new_row)
+        return True
+
+    # Update existing state
+    if active_labels is not None:
+        df.loc[0, 'active_labels'] = active_labels
+    if current_index is not None:
+        df.loc[0, 'current_index'] = current_index
+    df.loc[0, 'updated_at'] = now
+
+    save_table("workout_cycle_state", df)
+    return True
+
+
+def advance_cycle() -> Dict[str, Any]:
+    """
+    Advance to the next workout in the cycle
+
+    Returns:
+        Updated cycle state with new current workout
+    """
+    state = get_cycle_state()
+    active_labels = state.get('active_labels', '')
+
+    if not active_labels:
+        return state
+
+    labels_list = [l.strip() for l in active_labels.split(',') if l.strip()]
+    if not labels_list:
+        return state
+
+    current_index = state.get('current_index', 0)
+    new_index = (current_index + 1) % len(labels_list)
+
+    update_cycle_state(current_index=new_index)
+
+    return {
+        'id': 1,
+        'active_labels': active_labels,
+        'current_index': new_index,
+        'updated_at': datetime.now(),
+        'current_label': labels_list[new_index]
+    }
+
+
+def get_current_workout_label() -> Optional[str]:
+    """
+    Get the current workout label from cycle state
+
+    Returns:
+        Current workout label (A, B, C, etc.) or None if no workouts configured
+    """
+    state = get_cycle_state()
+    active_labels = state.get('active_labels', '')
+
+    if not active_labels:
+        return None
+
+    labels_list = [l.strip() for l in active_labels.split(',') if l.strip()]
+    if not labels_list:
+        return None
+
+    current_index = state.get('current_index', 0)
+    # Ensure index is within bounds
+    if current_index >= len(labels_list):
+        current_index = 0
+
+    return labels_list[current_index]
+
+
+# ============================================================================
+# EXERCISE SELECTIONS (mapping exercises to template slots)
+# ============================================================================
+
+def get_selections_for_template(template_id: int) -> List[Dict[str, Any]]:
+    """
+    Get all exercise selections for a template
+
+    Args:
+        template_id: Template ID
+
+    Returns:
+        List of selection dicts with slot_order and exercise_id
+    """
+    df = load_table("exercise_selections")
+    selections = df[df['template_id'] == template_id]
+    return selections.to_dict('records')
+
+
+def set_exercise_for_slot(
+    template_id: int,
+    slot_order: int,
+    exercise_id: int
+) -> int:
+    """
+    Set or update the exercise for a template slot
+
+    Args:
+        template_id: Template ID
+        slot_order: Slot position in template
+        exercise_id: Exercise ID to assign
+
+    Returns:
+        Selection ID
+    """
+    df = load_table("exercise_selections")
+    now = datetime.now()
+
+    # Check if selection already exists
+    mask = (df['template_id'] == template_id) & (df['slot_order'] == slot_order)
+
+    if mask.any():
+        # Update existing selection
+        df.loc[mask, 'exercise_id'] = exercise_id
+        df.loc[mask, 'selected_at'] = now
+        save_table("exercise_selections", df)
+        return int(df.loc[mask, 'id'].iloc[0])
+    else:
+        # Create new selection
+        new_id = 1 if df.empty else int(df['id'].max() + 1)
+
+        new_row = pd.DataFrame([{
+            'id': new_id,
+            'template_id': template_id,
+            'slot_order': slot_order,
+            'exercise_id': exercise_id,
+            'selected_at': now
+        }])
+
+        df = pd.concat([df, new_row], ignore_index=True)
+        save_table("exercise_selections", df)
+        return new_id
+
+
+def clear_selections_for_template(template_id: int) -> bool:
+    """
+    Clear all exercise selections for a template
+
+    Args:
+        template_id: Template ID
+
+    Returns:
+        True if any selections were deleted
+    """
+    df = load_table("exercise_selections")
+    mask = df['template_id'] == template_id
+
+    if not mask.any():
+        return False
+
+    df = df[~mask]
+    save_table("exercise_selections", df)
+    return True
 
 
 # ============================================================================

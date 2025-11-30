@@ -19,6 +19,11 @@ import workflow
 import db
 import analysis
 
+# Import new UI components
+from template_app import render_template_manager
+from cycle_app import render_cycle_config
+from import_app import render_import_workout
+
 
 # ============================================================================
 # RENDER: EXERCISE LIBRARY
@@ -1713,7 +1718,7 @@ def render_exercise_app():
         st.session_state['active_tab'] = 2  # Workout Overview tab
 
     # Create tabs for navigation
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
         "📚 Exercise Library",
         "🏋️ Create Workout",
         "📊 Workout Overview",
@@ -1721,6 +1726,9 @@ def render_exercise_app():
         "📈 History",
         "📝 Log Old Workout",
         "📊 Analytics",
+        "🗂️ Templates",         # NEW - slot-based template management
+        "🔄 Cycle Config",      # NEW - workout rotation config
+        "📥 Import Workout",    # NEW - markdown import
         "ℹ️ About"
     ])
 
@@ -1746,4 +1754,13 @@ def render_exercise_app():
         render_analytics()
 
     with tab8:
+        render_template_manager()
+
+    with tab9:
+        render_cycle_config()
+
+    with tab10:
+        render_import_workout()
+
+    with tab11:
         render_about()

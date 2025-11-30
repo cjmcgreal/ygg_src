@@ -348,3 +348,146 @@ def _calculate_linear_reps_progression(
         next_reps = last_reps
 
     return (next_weight, next_reps)
+
+
+# ============================================================================
+# INTENSITY-BASED CALCULATIONS (for slot-based templates)
+# ============================================================================
+
+# Intensity category definitions
+INTENSITY_RANGES = {
+    'strength': (3, 6),      # Heavy weight, low reps
+    'hypertrophy': (7, 11),  # Moderate weight, medium reps
+    'endurance': (12, 15)    # Light weight, high reps
+}
+
+# Approximate %1RM for different rep ranges (Epley/Brzycki derived)
+INTENSITY_1RM_PERCENT = {
+    'strength': 0.85,      # ~85% 1RM for 3-6 reps
+    'hypertrophy': 0.70,   # ~70% 1RM for 7-11 reps
+    'endurance': 0.60      # ~60% 1RM for 12-15 reps
+}
+
+
+def get_rep_range_for_intensity(intensity: str) -> tuple:
+    """
+    Get the rep range (min, max) for a given intensity category
+
+    Args:
+        intensity: 'strength', 'hypertrophy', or 'endurance'
+
+    Returns:
+        Tuple of (min_reps, max_reps)
+    """
+    return INTENSITY_RANGES.get(intensity.lower(), (8, 12))
+
+
+def calculate_weight_for_intensity(exercise_id: int, intensity: str) -> float:
+    """
+    Calculate appropriate working weight based on intensity and exercise 1RM
+
+    Uses the exercise's historical 1RM to determine appropriate weight for
+    the given intensity level. Falls back to starting weight if no history.
+
+    Args:
+        exercise_id: Exercise ID
+        intensity: 'strength', 'hypertrophy', or 'endurance'
+
+    Returns:
+        Recommended weight in lbs, rounded to nearest 5
+    """
+    # Get current 1RM estimate
+    current_1rm = analysis.get_latest_one_rep_max(exercise_id)
+
+    if current_1rm and current_1rm > 0:
+        # Calculate weight from %1RM
+        percent = INTENSITY_1RM_PERCENT.get(intensity.lower(), 0.70)
+        calculated_weight = current_1rm * percent
+
+        # Round to nearest 5 lbs for practicality
+        return round(calculated_weight / 5) * 5
+    else:
+        # No history - return starting weight (bar only)
+        return 45.0
+
+
+def generate_sets_for_slot(
+    exercise_id: int,
+    intensity: str,
+    num_sets: int = 3
+) -> List[Dict[str, Any]]:
+    """
+    Generate complete set list (warmup + working) for a slot-based exercise
+
+    Args:
+        exercise_id: Exercise ID
+        intensity: 'strength', 'hypertrophy', or 'endurance'
+        num_sets: Number of working sets to generate (default: 3)
+
+    Returns:
+        List of set dicts with set_type, set_number, target_weight, target_reps
+    """
+    # Get exercise configuration for warmup settings
+    exercise = db.get_exercise_by_id(exercise_id)
+    if not exercise:
+        raise ValueError(f"Exercise {exercise_id} not found")
+
+    # Get rep range for this intensity
+    rep_min, rep_max = get_rep_range_for_intensity(intensity)
+
+    # Start at low end of rep range for new sessions
+    target_reps = rep_min
+
+    # Calculate working weight for this intensity
+    working_weight = calculate_weight_for_intensity(exercise_id, intensity)
+
+    # Get current 1RM for warmup calculations
+    current_1rm = analysis.get_latest_one_rep_max(exercise_id)
+
+    # Generate warmup sets if exercise has warmup config
+    warmup_sets = []
+    warmup_config_str = exercise.get('warmup_config')
+
+    if warmup_config_str and not pd.isna(warmup_config_str):
+        try:
+            warmup_config = json.loads(warmup_config_str)
+            warmup_sets = generate_warmup_sets(
+                warmup_config,
+                working_weight,
+                target_reps,
+                current_1rm or 0
+            )
+        except (json.JSONDecodeError, KeyError, TypeError):
+            pass
+
+    # Generate working sets
+    working_sets = []
+    for i in range(num_sets):
+        working_sets.append({
+            'set_type': 'working',
+            'set_number': i + 1,
+            'target_weight': working_weight,
+            'target_reps': target_reps,
+            'rest_seconds': 120  # Default rest for working sets
+        })
+
+    return warmup_sets + working_sets
+
+
+def get_intensity_label(intensity: str) -> str:
+    """
+    Get human-readable label for intensity category
+
+    Args:
+        intensity: 'strength', 'hypertrophy', or 'endurance'
+
+    Returns:
+        Formatted label string with rep range
+    """
+    rep_min, rep_max = get_rep_range_for_intensity(intensity)
+    labels = {
+        'strength': f'Strength ({rep_min}-{rep_max} reps)',
+        'hypertrophy': f'Hypertrophy ({rep_min}-{rep_max} reps)',
+        'endurance': f'Endurance ({rep_min}-{rep_max} reps)'
+    }
+    return labels.get(intensity.lower(), f'Unknown ({rep_min}-{rep_max} reps)')
