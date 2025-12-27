@@ -1,0 +1,6 @@
+id,name,email,department,status
+1,Alice Johnson,alice@example.com,Management,inactive
+2,Bob Smith,bob@example.com,Marketing,active
+3,Charlie Brown,charlie@example.com,Sales,inactive
+4,Diana Prince,diana@example.com,Marketing,active
+5,Eve Wilson,eve@example.com,Marketing,done

@@ -1,0 +1,5 @@
+product_id,product_name,price,in_stock
+101,Widget,19.99,yes
+102,Gadget,29.99,yes
+103,Gizmo,39.99,no
+104,Doohickey,49.99,yes

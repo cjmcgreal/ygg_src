@@ -1,0 +1,12 @@
+task_assignments:
+  - task_group: "Task Group 1: CSV Database Abstraction Layer"
+    assigned_subagent: "database-engineer"
+
+  - task_group: "Task Group 2: Business Logic and Workflow Orchestration"
+    assigned_subagent: "api-engineer"
+
+  - task_group: "Task Group 3: Streamlit UI Implementation"
+    assigned_subagent: "ui-designer"
+
+  - task_group: "Task Group 4: Test Review and Integration Testing"
+    assigned_subagent: "testing-engineer"

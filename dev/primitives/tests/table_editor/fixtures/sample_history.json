@@ -1,0 +1,14 @@
+{
+  "files": [
+    {
+      "path": "/test/path/sample_data.csv",
+      "last_opened": "2025-12-27T10:30:00",
+      "display_name": "sample_data.csv"
+    },
+    {
+      "path": "/test/path/products.csv",
+      "last_opened": "2025-12-26T09:15:00",
+      "display_name": "products.csv"
+    }
+  ]
+}

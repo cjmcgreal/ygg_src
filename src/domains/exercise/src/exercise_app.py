@@ -10,10 +10,15 @@ from datetime import datetime, timedelta
 import sys
 import os
 
-# Add parent directory to path to import modules
+# Add parent directory to path to import modules (workflow, db, analysis)
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
+
+# Add current directory to path for sibling modules (template_app, cycle_app, import_app)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
 
 import workflow
 import db

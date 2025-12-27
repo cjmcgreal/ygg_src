@@ -1,0 +1,6 @@
+id,name,status,category
+1,Alice,active,A
+2,Bob,inactive,B
+3,Charlie,active,A
+4,Diana,pending,C
+5,Eve,active,B
