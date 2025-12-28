@@ -342,17 +342,14 @@ def load_file(file_path: str):
 # Main Editor Area
 # =============================================================================
 
-def render_editor():
+def render_main_area():
     """
-    Render the main editor area with:
-    - Title and file info
-    - st.data_editor for table editing
-    - Action buttons (Add Column, Delete Column, Save, Save As)
+    Render the main area with Editor and Viewer tabs.
     """
     # Header with current file info
     if st.session_state.current_file_path:
         file_name = Path(st.session_state.current_file_path).name
-        st.header(f"Editing: {file_name}")
+        st.header(f"File: {file_name}")
     else:
         st.header("Table Editor")
         st.info("Select a file from the sidebar to begin editing.")
@@ -362,30 +359,73 @@ def render_editor():
         st.warning("No data loaded.")
         return
 
-    # Data editor widget
+    # Create tabs for Viewer and Editor
+    viewer_tab, editor_tab = st.tabs(["Viewer", "Editor"])
+
+    with viewer_tab:
+        render_viewer_tab()
+
+    with editor_tab:
+        render_editor_tab()
+
+
+def render_editor_tab():
+    """
+    Render the Editor tab with:
+    - st.data_editor for table editing
+    - Action buttons (Add Column, Delete Column, Save, Save As)
+    """
+    # Configure string columns as text to avoid type inference issues
+    # (e.g., email columns getting special validation)
+    # Leave numeric columns with default config
+    column_config = {}
+    for col in st.session_state.current_df.columns:
+        if st.session_state.current_df[col].dtype == 'object':
+            column_config[col] = st.column_config.TextColumn(col)
+
+    # Data editor widget - always sync back to session state
+    # st.data_editor manages its own state via the key
     edited_df = st.data_editor(
         st.session_state.current_df,
         num_rows="dynamic",
         use_container_width=True,
+        column_config=column_config,
         key="main_data_editor"
     )
 
-    # Check for changes and update session state
-    if edited_df is not None and not edited_df.equals(st.session_state.current_df):
-        st.session_state.current_df = edited_df
-
-        # Check for new unique values if feature is enabled
-        if st.session_state.confirm_new_values_enabled:
-            new_values = workflow.check_for_new_values(
-                st.session_state.original_unique_values,
-                edited_df
-            )
-            if new_values:
-                st.session_state.pending_new_values = new_values
+    # Update session state with the editor's current state
+    # Don't modify the DataFrame (no reset_index) to avoid re-render issues
+    st.session_state.current_df = edited_df
 
     # Action buttons row
     st.divider()
     render_action_buttons()
+
+    # Check for new unique values if feature is enabled (after buttons, non-blocking)
+    if st.session_state.confirm_new_values_enabled and edited_df is not None:
+        new_values = workflow.check_for_new_values(
+            st.session_state.original_unique_values,
+            edited_df
+        )
+        if new_values:
+            st.session_state.pending_new_values = new_values
+
+
+def render_viewer_tab():
+    """
+    Render the Viewer tab with:
+    - Read-only data display with column sorting
+    - Row count info
+    """
+    st.caption(f"{len(st.session_state.current_df)} rows, {len(st.session_state.current_df.columns)} columns")
+
+    # st.dataframe supports native column sorting when clicked
+    st.dataframe(
+        st.session_state.current_df,
+        use_container_width=True,
+        hide_index=False,
+        key="main_data_viewer"
+    )
 
 
 def render_action_buttons():
@@ -458,8 +498,8 @@ def render_table_editor():
     # Render sidebar
     render_sidebar()
 
-    # Render main editor
-    render_editor()
+    # Render main area with tabs
+    render_main_area()
 
     # Handle pending confirmations
     if st.session_state.pending_new_values:

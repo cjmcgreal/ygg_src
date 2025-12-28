@@ -97,7 +97,9 @@ class TestRenderTableEditorFunction:
         # Verify helper functions exist
         assert hasattr(table_editor_app, 'initialize_session_state')
         assert hasattr(table_editor_app, 'render_sidebar')
-        assert hasattr(table_editor_app, 'render_editor')
+        assert hasattr(table_editor_app, 'render_main_area')
+        assert hasattr(table_editor_app, 'render_editor_tab')
+        assert hasattr(table_editor_app, 'render_viewer_tab')
         assert hasattr(table_editor_app, 'render_action_buttons')
 
 
