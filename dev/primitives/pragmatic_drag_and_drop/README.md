@@ -1,130 +1,122 @@
-# Pragmatic Drag and Drop Examples
+# Pragmatic Drag and Drop - CSV Editor
 
-A simple demonstration of [Atlassian's Pragmatic Drag and Drop](https://github.com/atlassian/pragmatic-drag-and-drop) library with two examples: a Kanban Board and a File Tree.
+A demonstration of [Atlassian's Pragmatic Drag and Drop](https://github.com/atlassian/pragmatic-drag-and-drop) library that edits CSV data through drag and drop interactions.
+
+## Features
+
+- **Board View**: Drag cards between columns to update the `status` field
+- **Tree View**: Drag items into folders to update the `parent` field
+- All changes are persisted to `data/items.csv`
 
 ## Quick Start
 
-1. Open `index.html` in a modern web browser (Chrome, Firefox, Safari, Edge)
-2. That's it! No build step or npm install required
+1. Install dependencies:
+   ```bash
+   pip install flask flask-cors pandas
+   ```
 
-The examples load the library directly from a CDN using ES modules.
+2. Start the server:
+   ```bash
+   python server.py
+   ```
 
-## Examples
-
-### Board (Kanban)
-
-A three-column Kanban board where you can drag cards between columns:
-
-- **To Do** - Tasks waiting to be started
-- **In Progress** - Tasks currently being worked on
-- **Done** - Completed tasks
-
-Drag any card and drop it on a different column to move it.
-
-### Tree (File Explorer)
-
-A hierarchical file tree where you can:
-
-- **Reorder items** - Drag above or below other items
-- **Move into folders** - Drag to the middle of a folder to nest items inside
-
-## How It Works
-
-### Key Concepts
-
-**1. Draggable Elements**
-
-Makes an element draggable:
-
-```javascript
-import { draggable } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-
-draggable({
-    element: myElement,
-    getInitialData: () => ({ id: 'item-1' }),  // Data attached to the drag
-    onDragStart: () => { /* Called when drag begins */ },
-    onDrop: () => { /* Called when drag ends */ }
-});
-```
-
-**2. Drop Targets**
-
-Makes an element accept drops:
-
-```javascript
-import { dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-
-dropTargetForElements({
-    element: myDropZone,
-    getData: () => ({ zoneId: 'zone-1' }),     // Data about the drop target
-    canDrop: ({ source }) => true,             // Control if drops are allowed
-    onDragEnter: () => { /* Draggable entered */ },
-    onDragLeave: () => { /* Draggable left */ },
-    onDrop: ({ source }) => { /* Handle the drop */ }
-});
-```
-
-**3. Monitors**
-
-Listen to all drag and drop events globally:
-
-```javascript
-import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-
-monitorForElements({
-    onDragStart: ({ source }) => console.log('Started:', source.data),
-    onDrop: ({ source, location }) => console.log('Dropped:', source.data)
-});
-```
+3. Open http://localhost:5000 in your browser
 
 ## File Structure
 
 ```
 pragmatic_drag_and_drop/
-├── index.html    # Complete example with HTML, CSS, and JavaScript
-└── README.md     # This file
+├── index.html      # Frontend with drag-and-drop UI
+├── server.py       # Flask API server for CSV operations
+├── data/
+│   └── items.csv   # Source data (edited by drag-and-drop)
+└── README.md
 ```
 
-## Browser Support
+## CSV Data Format
 
-Works in all modern browsers:
-- Chrome / Edge
-- Firefox
-- Safari
+The `data/items.csv` file contains all items with these columns:
+
+| Column   | Description                                      |
+|----------|--------------------------------------------------|
+| `id`     | Unique identifier                                |
+| `name`   | Display name                                     |
+| `type`   | `card` (board), `folder`, or `file` (tree)       |
+| `parent` | Parent folder ID (empty = root level)            |
+| `status` | `todo`, `in-progress`, or `done`                 |
+
+### Example CSV
+
+```csv
+id,name,type,parent,status
+documents,Documents,folder,,todo
+report,Report.pdf,file,documents,todo
+research,Research task,card,,in-progress
+```
+
+## How It Works
+
+### Board Tab (Edits `status`)
+
+- Shows items where `type = "card"`
+- Cards are grouped into columns by their `status` value
+- Dragging a card to a different column updates `status` in the CSV
+
+### Tree Tab (Edits `parent`)
+
+- Shows items where `type = "folder"` or `type = "file"`
+- Items are nested based on their `parent` value
+- Dragging an item:
+  - **Into a folder**: Sets `parent` to that folder's ID
+  - **Above/below another item**: Sets `parent` to that item's parent
+  - **To "root level" zone**: Clears `parent` (empty string)
+
+## API Endpoints
+
+| Method | Endpoint                    | Description                |
+|--------|----------------------------|----------------------------|
+| GET    | `/api/items`               | Get all items              |
+| PUT    | `/api/items/<id>`          | Update any field           |
+| PUT    | `/api/items/<id>/status`   | Update status only         |
+| PUT    | `/api/items/<id>/parent`   | Update parent only         |
+
+### Example API Calls
+
+```bash
+# Get all items
+curl http://localhost:5000/api/items
+
+# Update an item's status
+curl -X PUT http://localhost:5000/api/items/research/status \
+  -H "Content-Type: application/json" \
+  -d '{"status": "done"}'
+
+# Update an item's parent
+curl -X PUT http://localhost:5000/api/items/report/parent \
+  -H "Content-Type: application/json" \
+  -d '{"parent": "images"}'
+```
+
+## Adding New Items
+
+Edit `data/items.csv` directly to add new items:
+
+```csv
+my-task,My New Task,card,,todo
+my-folder,My Folder,folder,,todo
+my-file,MyFile.txt,file,my-folder,todo
+```
+
+Then refresh the browser to see the changes.
+
+## Dependencies
+
+- Python 3.7+
+- Flask (web server)
+- Flask-CORS (cross-origin requests)
+- pandas (CSV handling)
 
 ## Resources
 
-- [Official Documentation](https://atlassian.design/components/pragmatic-drag-and-drop/)
+- [Pragmatic Drag and Drop Documentation](https://atlassian.design/components/pragmatic-drag-and-drop/)
 - [GitHub Repository](https://github.com/atlassian/pragmatic-drag-and-drop)
-- [npm Package](https://www.npmjs.com/package/@atlaskit/pragmatic-drag-and-drop)
-- [Video Tutorial](https://www.youtube.com/watch?v=5SQkOyzZLHM)
-
-## Using in Your Own Project
-
-### Option 1: CDN (No Build Step)
-
-Use ES modules directly in HTML (like this example):
-
-```html
-<script type="module">
-    import { draggable } from 'https://esm.sh/@atlaskit/pragmatic-drag-and-drop/element/adapter';
-    // Your code here
-</script>
-```
-
-### Option 2: npm (Build Step Required)
-
-```bash
-npm install @atlaskit/pragmatic-drag-and-drop
-```
-
-```javascript
-import { draggable } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-```
-
-## Tips for Beginners
-
-1. **Visual Feedback** - Always show users where items will land (borders, backgrounds)
-2. **Data First** - Attach meaningful data with `getInitialData()` and `getData()`
-3. **Clean Up** - Remove visual indicators in `onDragLeave` and `onDrop`
-4. **Console Logging** - Use `monitorForElements` to debug drag operations

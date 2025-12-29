@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pragmatic Drag and Drop Examples</title>
+    <title>Pragmatic Drag and Drop - CSV Editor</title>
     <style>
         /* ========================================
            GENERAL STYLES
@@ -24,7 +24,14 @@
         h1 {
             text-align: center;
             color: #333;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
             margin-bottom: 20px;
+            font-size: 14px;
         }
 
         /* ========================================
@@ -70,6 +77,16 @@
             display: block;
         }
 
+        .tab-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #fff;
+            border-radius: 6px;
+            border-left: 4px solid #0052cc;
+        }
+
         /* ========================================
            BOARD STYLES (Kanban-like)
            ======================================== */
@@ -93,6 +110,17 @@
             color: #172b4d;
             padding: 8px 4px;
             margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .column-count {
+            background: #dfe1e6;
+            color: #5e6c84;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
         }
 
         .column-cards {
@@ -102,7 +130,6 @@
             gap: 8px;
         }
 
-        /* State when column is a valid drop target */
         .column-cards.drop-target {
             background: rgba(0, 82, 204, 0.1);
             border-radius: 4px;
@@ -122,19 +149,15 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
-        /* State when card is being dragged */
         .card.dragging {
             opacity: 0.5;
             transform: rotate(3deg);
         }
 
-        /* Visual indicator for where card will be placed */
-        .card.drop-indicator-top {
-            border-top: 3px solid #0052cc;
-        }
-
-        .card.drop-indicator-bottom {
-            border-bottom: 3px solid #0052cc;
+        .card-id {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
         }
 
         /* ========================================
@@ -144,7 +167,7 @@
             background: white;
             border-radius: 8px;
             padding: 16px;
-            max-width: 400px;
+            max-width: 500px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
@@ -176,7 +199,6 @@
             background: #e0e0e0;
         }
 
-        /* Drop indicators for tree */
         .tree-item.drop-above {
             border-top: 2px solid #0052cc;
         }
@@ -196,13 +218,21 @@
 
         .tree-label {
             color: #333;
+            flex: 1;
+        }
+
+        .tree-parent-badge {
+            font-size: 11px;
+            color: #999;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
         }
 
         .tree-children {
             overflow: hidden;
         }
 
-        /* Folder toggle button */
         .tree-toggle {
             width: 20px;
             height: 20px;
@@ -218,6 +248,23 @@
             visibility: hidden;
         }
 
+        /* Root drop zone for making items top-level */
+        .tree-root-zone {
+            margin-top: 12px;
+            padding: 16px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .tree-root-zone.drop-target {
+            border-color: #0052cc;
+            background: rgba(0, 82, 204, 0.05);
+            color: #0052cc;
+        }
+
         /* ========================================
            STATUS MESSAGES
            ======================================== */
@@ -229,129 +276,83 @@
             color: #006644;
             font-size: 14px;
         }
+
+        .status.saving {
+            background: #fffae6;
+            color: #974f0c;
+        }
+
+        .status.error {
+            background: #ffebe6;
+            color: #bf2600;
+        }
+
+        /* ========================================
+           LOADING STATE
+           ======================================== */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #ddd;
+            border-top-color: #0052cc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <h1>Pragmatic Drag and Drop Examples</h1>
+    <h1>Pragmatic Drag and Drop - CSV Editor</h1>
+    <p class="subtitle">Data is loaded from and saved to <code>data/items.csv</code></p>
 
     <!-- Tab Navigation -->
     <div class="tabs">
-        <button class="tab-button active" data-tab="board">Board</button>
-        <button class="tab-button" data-tab="tree">Tree</button>
+        <button class="tab-button active" data-tab="board">Board (Status)</button>
+        <button class="tab-button" data-tab="tree">Tree (Parent)</button>
     </div>
 
     <!-- Board Tab Content -->
     <div id="board" class="tab-content active">
-        <div class="board">
-            <!-- To Do Column -->
-            <div class="column" data-column="todo">
-                <div class="column-header">To Do</div>
-                <div class="column-cards" data-column-id="todo">
-                    <div class="card" data-card-id="1">Research user needs</div>
-                    <div class="card" data-card-id="2">Create wireframes</div>
-                    <div class="card" data-card-id="3">Review competitors</div>
-                </div>
-            </div>
-
-            <!-- In Progress Column -->
-            <div class="column" data-column="in-progress">
-                <div class="column-header">In Progress</div>
-                <div class="column-cards" data-column-id="in-progress">
-                    <div class="card" data-card-id="4">Design mockups</div>
-                    <div class="card" data-card-id="5">Write documentation</div>
-                </div>
-            </div>
-
-            <!-- Done Column -->
-            <div class="column" data-column="done">
-                <div class="column-header">Done</div>
-                <div class="column-cards" data-column-id="done">
-                    <div class="card" data-card-id="6">Project kickoff</div>
-                </div>
+        <div class="tab-description">
+            Drag cards between columns to change their <strong>status</strong> field in the CSV.
+        </div>
+        <div class="board" id="board-container">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Loading data...</p>
             </div>
         </div>
-        <div class="status" id="board-status">Drag cards between columns!</div>
+        <div class="status" id="board-status">Drag cards between columns to update status!</div>
     </div>
 
     <!-- Tree Tab Content -->
     <div id="tree" class="tab-content">
-        <div class="tree">
-            <div class="tree-node" data-node-id="root">
-                <!-- Documents Folder -->
-                <div class="tree-node" data-node-id="documents">
-                    <div class="tree-item" data-type="folder" data-id="documents">
-                        <span class="tree-toggle">▼</span>
-                        <span class="tree-icon">📁</span>
-                        <span class="tree-label">Documents</span>
-                    </div>
-                    <div class="tree-children">
-                        <div class="tree-node" data-node-id="report">
-                            <div class="tree-item" data-type="file" data-id="report">
-                                <span class="tree-toggle"></span>
-                                <span class="tree-icon">📄</span>
-                                <span class="tree-label">Report.pdf</span>
-                            </div>
-                        </div>
-                        <div class="tree-node" data-node-id="notes">
-                            <div class="tree-item" data-type="file" data-id="notes">
-                                <span class="tree-toggle"></span>
-                                <span class="tree-icon">📄</span>
-                                <span class="tree-label">Notes.txt</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Images Folder -->
-                <div class="tree-node" data-node-id="images">
-                    <div class="tree-item" data-type="folder" data-id="images">
-                        <span class="tree-toggle">▼</span>
-                        <span class="tree-icon">📁</span>
-                        <span class="tree-label">Images</span>
-                    </div>
-                    <div class="tree-children">
-                        <div class="tree-node" data-node-id="photo1">
-                            <div class="tree-item" data-type="file" data-id="photo1">
-                                <span class="tree-toggle"></span>
-                                <span class="tree-icon">🖼️</span>
-                                <span class="tree-label">Photo1.jpg</span>
-                            </div>
-                        </div>
-                        <div class="tree-node" data-node-id="photo2">
-                            <div class="tree-item" data-type="file" data-id="photo2">
-                                <span class="tree-toggle"></span>
-                                <span class="tree-icon">🖼️</span>
-                                <span class="tree-label">Photo2.png</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Single File -->
-                <div class="tree-node" data-node-id="readme">
-                    <div class="tree-item" data-type="file" data-id="readme">
-                        <span class="tree-toggle"></span>
-                        <span class="tree-icon">📄</span>
-                        <span class="tree-label">README.md</span>
-                    </div>
-                </div>
+        <div class="tab-description">
+            Drag items into folders to change their <strong>parent</strong> field in the CSV.
+            Drop on "Make root level" to remove the parent.
+        </div>
+        <div class="tree" id="tree-container">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Loading data...</p>
             </div>
         </div>
-        <div class="status" id="tree-status">Drag items to reorder or move into folders!</div>
+        <div class="status" id="tree-status">Drag items to change their parent!</div>
     </div>
 
-    <!--
-        JAVASCRIPT SECTION
-
-        We use ES modules loaded from esm.sh CDN.
-        This allows us to use npm packages directly in the browser!
-    -->
     <script type="module">
         // ========================================
         // IMPORTS
-        //
-        // esm.sh is a CDN that converts npm packages to ES modules
-        // that can run directly in the browser
         // ========================================
         import {
             draggable,
@@ -360,253 +361,451 @@
         } from 'https://esm.sh/@atlaskit/pragmatic-drag-and-drop@1.7.7/element/adapter';
 
         // ========================================
-        // TAB SWITCHING LOGIC
+        // STATE
+        // ========================================
+        let items = [];  // All items loaded from CSV
+
+        // ========================================
+        // API FUNCTIONS
+        // ========================================
+
+        /**
+         * Fetch all items from the server.
+         * @returns {Promise<Array>} Array of item objects
+         */
+        async function fetchItems() {
+            const response = await fetch('/api/items');
+            if (!response.ok) throw new Error('Failed to fetch items');
+            return response.json();
+        }
+
+        /**
+         * Update an item's status on the server.
+         * @param {string} itemId - The item ID
+         * @param {string} newStatus - The new status (todo, in-progress, done)
+         */
+        async function updateItemStatus(itemId, newStatus) {
+            const response = await fetch(`/api/items/${itemId}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (!response.ok) throw new Error('Failed to update status');
+            return response.json();
+        }
+
+        /**
+         * Update an item's parent on the server.
+         * @param {string} itemId - The item ID
+         * @param {string} newParent - The new parent ID (empty string for root)
+         */
+        async function updateItemParent(itemId, newParent) {
+            const response = await fetch(`/api/items/${itemId}/parent`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ parent: newParent })
+            });
+            if (!response.ok) throw new Error('Failed to update parent');
+            return response.json();
+        }
+
+        // ========================================
+        // TAB SWITCHING
         // ========================================
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
 
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
-                // Remove active class from all buttons and contents
                 tabButtons.forEach(btn => btn.classList.remove('active'));
                 tabContents.forEach(content => content.classList.remove('active'));
-
-                // Add active class to clicked button and corresponding content
                 button.classList.add('active');
-                const tabId = button.getAttribute('data-tab');
-                document.getElementById(tabId).classList.add('active');
+                document.getElementById(button.getAttribute('data-tab')).classList.add('active');
             });
         });
 
         // ========================================
-        // BOARD EXAMPLE
-        //
-        // A Kanban-style board where cards can be
-        // dragged between columns
+        // BOARD RENDERING
         // ========================================
 
-        // Get all cards and columns
-        const cards = document.querySelectorAll('.card');
-        const columns = document.querySelectorAll('.column-cards');
-        const boardStatus = document.getElementById('board-status');
+        const columns = [
+            { id: 'todo', label: 'To Do' },
+            { id: 'in-progress', label: 'In Progress' },
+            { id: 'done', label: 'Done' }
+        ];
 
-        // Make each card draggable
-        cards.forEach(card => {
-            draggable({
-                element: card,
+        /**
+         * Render the board with current items.
+         * Only shows items with type="card".
+         */
+        function renderBoard() {
+            const container = document.getElementById('board-container');
+            const cardItems = items.filter(item => item.type === 'card');
 
-                // getInitialData: Attach data to the drag operation
-                // This data will be available when the card is dropped
-                getInitialData: () => ({
-                    cardId: card.getAttribute('data-card-id'),
-                    cardText: card.textContent,
-                    sourceColumn: card.parentElement.getAttribute('data-column-id')
-                }),
+            container.innerHTML = columns.map(col => {
+                const colItems = cardItems.filter(item => item.status === col.id);
+                return `
+                    <div class="column" data-column="${col.id}">
+                        <div class="column-header">
+                            ${col.label}
+                            <span class="column-count">${colItems.length}</span>
+                        </div>
+                        <div class="column-cards" data-column-id="${col.id}">
+                            ${colItems.map(item => `
+                                <div class="card" data-card-id="${item.id}" data-card-name="${item.name}">
+                                    <span class="card-name">${item.name}</span>
+                                    <div class="card-id">id: ${item.id}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
 
-                // onDragStart: Called when dragging begins
-                onDragStart: () => {
-                    card.classList.add('dragging');
-                    boardStatus.textContent = `Dragging: "${card.textContent}"`;
-                },
+            // Setup drag and drop after rendering
+            setupBoardDragDrop();
+        }
 
-                // onDrop: Called when the drag operation ends
-                onDrop: () => {
-                    card.classList.remove('dragging');
-                }
-            });
-        });
+        /**
+         * Setup drag and drop for board cards.
+         */
+        function setupBoardDragDrop() {
+            const boardStatus = document.getElementById('board-status');
+            const cards = document.querySelectorAll('.card');
+            const columnContainers = document.querySelectorAll('.column-cards');
 
-        // Make each column a drop target
-        columns.forEach(column => {
-            dropTargetForElements({
-                element: column,
+            // Make each card draggable
+            cards.forEach(card => {
+                const cardName = card.getAttribute('data-card-name');
 
-                // getData: Return data about this drop target
-                getData: () => ({
-                    columnId: column.getAttribute('data-column-id')
-                }),
-
-                // onDragEnter: Called when a draggable enters this target
-                onDragEnter: () => {
-                    column.classList.add('drop-target');
-                },
-
-                // onDragLeave: Called when a draggable leaves this target
-                onDragLeave: () => {
-                    column.classList.remove('drop-target');
-                },
-
-                // onDrop: Called when an item is dropped on this target
-                onDrop: ({ source }) => {
-                    column.classList.remove('drop-target');
-
-                    // Get the dragged card element
-                    const draggedCard = source.element;
-                    const sourceColumn = source.data.sourceColumn;
-                    const targetColumn = column.getAttribute('data-column-id');
-
-                    // Only move if it's a different column
-                    if (sourceColumn !== targetColumn) {
-                        // Move the card to this column
-                        column.appendChild(draggedCard);
-
-                        boardStatus.textContent =
-                            `Moved "${source.data.cardText}" from ${sourceColumn} to ${targetColumn}`;
-                    } else {
-                        boardStatus.textContent = `Card stayed in ${targetColumn}`;
+                draggable({
+                    element: card,
+                    getInitialData: () => ({
+                        cardId: card.getAttribute('data-card-id'),
+                        cardText: cardName,
+                        sourceColumn: card.closest('.column-cards').getAttribute('data-column-id')
+                    }),
+                    onDragStart: () => {
+                        card.classList.add('dragging');
+                        boardStatus.textContent = `Dragging: "${cardName}"`;
+                        boardStatus.className = 'status';
+                    },
+                    onDrop: () => {
+                        card.classList.remove('dragging');
                     }
-                }
-            });
-        });
-
-        // ========================================
-        // TREE EXAMPLE
-        //
-        // A file tree where items can be reordered
-        // and moved into folders
-        // ========================================
-
-        const treeItems = document.querySelectorAll('.tree-item');
-        const treeStatus = document.getElementById('tree-status');
-
-        // Make each tree item draggable
-        treeItems.forEach(item => {
-            draggable({
-                element: item,
-
-                getInitialData: () => ({
-                    id: item.getAttribute('data-id'),
-                    type: item.getAttribute('data-type'),
-                    label: item.querySelector('.tree-label').textContent
-                }),
-
-                onDragStart: () => {
-                    item.classList.add('dragging');
-                    treeStatus.textContent = `Dragging: "${item.querySelector('.tree-label').textContent}"`;
-                },
-
-                onDrop: () => {
-                    item.classList.remove('dragging');
-                }
+                });
             });
 
-            // Also make tree items drop targets
-            dropTargetForElements({
-                element: item,
+            // Make each column a drop target
+            columnContainers.forEach(column => {
+                dropTargetForElements({
+                    element: column,
+                    getData: () => ({
+                        columnId: column.getAttribute('data-column-id')
+                    }),
+                    onDragEnter: () => {
+                        column.classList.add('drop-target');
+                    },
+                    onDragLeave: () => {
+                        column.classList.remove('drop-target');
+                    },
+                    onDrop: async ({ source }) => {
+                        column.classList.remove('drop-target');
 
-                // canDrop: Determine if we can drop on this target
-                // We allow dropping on folders, and above/below any item
-                canDrop: ({ source }) => {
-                    // Don't allow dropping on self
-                    return source.element !== item;
-                },
+                        const cardId = source.data.cardId;
+                        const sourceColumn = source.data.sourceColumn;
+                        const targetColumn = column.getAttribute('data-column-id');
 
-                getData: ({ input, element }) => {
-                    // Calculate if we're in the top, middle, or bottom third
-                    const rect = element.getBoundingClientRect();
-                    const y = input.clientY;
-                    const relativeY = y - rect.top;
-                    const height = rect.height;
+                        if (sourceColumn !== targetColumn) {
+                            boardStatus.textContent = `Saving...`;
+                            boardStatus.className = 'status saving';
 
-                    let position;
-                    if (relativeY < height / 3) {
-                        position = 'above';
-                    } else if (relativeY > (height * 2) / 3) {
-                        position = 'below';
-                    } else {
-                        // Middle third - only allow "inside" for folders
-                        position = item.getAttribute('data-type') === 'folder' ? 'inside' : 'below';
+                            try {
+                                // Update on server
+                                await updateItemStatus(cardId, targetColumn);
+
+                                // Update local state
+                                const item = items.find(i => i.id === cardId);
+                                if (item) item.status = targetColumn;
+
+                                // Re-render board
+                                renderBoard();
+
+                                boardStatus.textContent = `Moved "${source.data.cardText}" to ${targetColumn}. Saved to CSV!`;
+                                boardStatus.className = 'status';
+                            } catch (error) {
+                                boardStatus.textContent = `Error: ${error.message}`;
+                                boardStatus.className = 'status error';
+                            }
+                        } else {
+                            boardStatus.textContent = `Card stayed in ${targetColumn}`;
+                            boardStatus.className = 'status';
+                        }
                     }
+                });
+            });
+        }
 
-                    return {
+        // ========================================
+        // TREE RENDERING
+        // ========================================
+
+        /**
+         * Build a tree structure from flat items.
+         * Only includes folder and file types.
+         */
+        function buildTree(items) {
+            const treeItems = items.filter(item => item.type === 'folder' || item.type === 'file');
+            const itemMap = new Map(treeItems.map(item => [item.id, { ...item, children: [] }]));
+
+            const roots = [];
+
+            treeItems.forEach(item => {
+                const node = itemMap.get(item.id);
+                if (item.parent && itemMap.has(item.parent)) {
+                    itemMap.get(item.parent).children.push(node);
+                } else {
+                    roots.push(node);
+                }
+            });
+
+            return roots;
+        }
+
+        /**
+         * Render a single tree node and its children.
+         */
+        function renderTreeNode(node) {
+            const isFolder = node.type === 'folder';
+            const hasChildren = node.children && node.children.length > 0;
+            const icon = isFolder ? '📁' : (node.name.match(/\.(jpg|png|gif)$/i) ? '🖼️' : '📄');
+
+            return `
+                <div class="tree-node" data-node-id="${node.id}">
+                    <div class="tree-item" data-type="${node.type}" data-id="${node.id}">
+                        <span class="tree-toggle">${isFolder ? '▼' : ''}</span>
+                        <span class="tree-icon">${icon}</span>
+                        <span class="tree-label">${node.name}</span>
+                        ${node.parent ? `<span class="tree-parent-badge">parent: ${node.parent}</span>` : ''}
+                    </div>
+                    ${hasChildren ? `
+                        <div class="tree-children">
+                            ${node.children.map(child => renderTreeNode(child)).join('')}
+                        </div>
+                    ` : (isFolder ? '<div class="tree-children"></div>' : '')}
+                </div>
+            `;
+        }
+
+        /**
+         * Render the tree with current items.
+         */
+        function renderTree() {
+            const container = document.getElementById('tree-container');
+            const tree = buildTree(items);
+
+            container.innerHTML = `
+                <div class="tree-root" data-node-id="root">
+                    ${tree.map(node => renderTreeNode(node)).join('')}
+                </div>
+                <div class="tree-root-zone" id="tree-root-zone">
+                    Drop here to make item root level (no parent)
+                </div>
+            `;
+
+            setupTreeDragDrop();
+        }
+
+        /**
+         * Setup drag and drop for tree items.
+         */
+        function setupTreeDragDrop() {
+            const treeStatus = document.getElementById('tree-status');
+            const treeItems = document.querySelectorAll('.tree-item');
+            const rootZone = document.getElementById('tree-root-zone');
+
+            // Make each tree item draggable and a drop target
+            treeItems.forEach(item => {
+                draggable({
+                    element: item,
+                    getInitialData: () => ({
                         id: item.getAttribute('data-id'),
                         type: item.getAttribute('data-type'),
-                        position: position
-                    };
-                },
-
-                onDragEnter: ({ self }) => {
-                    // Clear previous indicators
-                    item.classList.remove('drop-above', 'drop-below', 'drop-inside');
-
-                    // Add indicator based on position
-                    const position = self.data.position;
-                    if (position === 'above') {
-                        item.classList.add('drop-above');
-                    } else if (position === 'below') {
-                        item.classList.add('drop-below');
-                    } else if (position === 'inside') {
-                        item.classList.add('drop-inside');
+                        label: item.querySelector('.tree-label').textContent
+                    }),
+                    onDragStart: () => {
+                        item.classList.add('dragging');
+                        treeStatus.textContent = `Dragging: "${item.querySelector('.tree-label').textContent}"`;
+                        treeStatus.className = 'status';
+                    },
+                    onDrop: () => {
+                        item.classList.remove('dragging');
                     }
-                },
+                });
 
-                onDrag: ({ self }) => {
-                    // Update indicator as cursor moves
-                    item.classList.remove('drop-above', 'drop-below', 'drop-inside');
+                // Only folders can accept drops inside
+                dropTargetForElements({
+                    element: item,
+                    canDrop: ({ source }) => {
+                        // Can't drop on self
+                        if (source.element === item) return false;
+                        // Can't drop a folder into its own children
+                        const draggedId = source.data.id;
+                        const targetId = item.getAttribute('data-id');
+                        return !isDescendant(draggedId, targetId);
+                    },
+                    getData: ({ input, element }) => {
+                        const rect = element.getBoundingClientRect();
+                        const y = input.clientY;
+                        const relativeY = y - rect.top;
+                        const height = rect.height;
+                        const isFolder = item.getAttribute('data-type') === 'folder';
 
-                    const position = self.data.position;
-                    if (position === 'above') {
-                        item.classList.add('drop-above');
-                    } else if (position === 'below') {
-                        item.classList.add('drop-below');
-                    } else if (position === 'inside') {
-                        item.classList.add('drop-inside');
-                    }
-                },
-
-                onDragLeave: () => {
-                    item.classList.remove('drop-above', 'drop-below', 'drop-inside');
-                },
-
-                onDrop: ({ source, self }) => {
-                    item.classList.remove('drop-above', 'drop-below', 'drop-inside');
-
-                    const draggedNode = source.element.closest('.tree-node');
-                    const targetNode = item.closest('.tree-node');
-                    const position = self.data.position;
-
-                    if (position === 'inside' && self.data.type === 'folder') {
-                        // Move into folder
-                        const folderChildren = targetNode.querySelector('.tree-children');
-                        if (folderChildren) {
-                            folderChildren.appendChild(draggedNode);
-                            treeStatus.textContent =
-                                `Moved "${source.data.label}" into folder "${self.data.id}"`;
+                        // For folders: top third = above, middle = inside, bottom = below
+                        // For files: top half = above, bottom half = below
+                        let position;
+                        if (isFolder) {
+                            if (relativeY < height / 3) position = 'above';
+                            else if (relativeY > (height * 2) / 3) position = 'below';
+                            else position = 'inside';
+                        } else {
+                            position = relativeY < height / 2 ? 'above' : 'below';
                         }
-                    } else if (position === 'above') {
-                        // Insert before target
-                        targetNode.parentElement.insertBefore(draggedNode, targetNode);
-                        treeStatus.textContent =
-                            `Moved "${source.data.label}" above "${self.data.id}"`;
-                    } else if (position === 'below') {
-                        // Insert after target
-                        targetNode.parentElement.insertBefore(draggedNode, targetNode.nextSibling);
-                        treeStatus.textContent =
-                            `Moved "${source.data.label}" below "${self.data.id}"`;
+
+                        return {
+                            id: item.getAttribute('data-id'),
+                            type: item.getAttribute('data-type'),
+                            position
+                        };
+                    },
+                    onDragEnter: ({ self }) => updateTreeIndicator(item, self.data.position),
+                    onDrag: ({ self }) => updateTreeIndicator(item, self.data.position),
+                    onDragLeave: () => clearTreeIndicator(item),
+                    onDrop: async ({ source, self }) => {
+                        clearTreeIndicator(item);
+
+                        const draggedId = source.data.id;
+                        const targetId = self.data.id;
+                        const position = self.data.position;
+
+                        // Determine the new parent
+                        let newParent = '';
+                        if (position === 'inside' && self.data.type === 'folder') {
+                            // Moving inside a folder - folder becomes the parent
+                            newParent = targetId;
+                        } else {
+                            // Moving above/below - take the target's parent
+                            const targetItem = items.find(i => i.id === targetId);
+                            newParent = targetItem ? targetItem.parent : '';
+                        }
+
+                        await saveParentChange(draggedId, newParent, source.data.label);
                     }
+                });
+            });
+
+            // Root zone drop target - removes parent
+            dropTargetForElements({
+                element: rootZone,
+                getData: () => ({ isRoot: true }),
+                onDragEnter: () => rootZone.classList.add('drop-target'),
+                onDragLeave: () => rootZone.classList.remove('drop-target'),
+                onDrop: async ({ source }) => {
+                    rootZone.classList.remove('drop-target');
+                    await saveParentChange(source.data.id, '', source.data.label);
                 }
             });
-        });
+        }
 
-        // ========================================
-        // GLOBAL MONITOR
-        //
-        // Monitors all drag and drop operations
-        // Useful for logging, analytics, or global state
-        // ========================================
-        monitorForElements({
-            onDragStart: ({ source }) => {
-                console.log('Drag started:', source.data);
-            },
-            onDrop: ({ source, location }) => {
-                console.log('Drop completed:', {
-                    source: source.data,
-                    target: location.current.dropTargets[0]?.data
-                });
+        /**
+         * Check if potentialAncestor is an ancestor of itemId.
+         */
+        function isDescendant(potentialAncestorId, itemId) {
+            let current = items.find(i => i.id === itemId);
+            while (current && current.parent) {
+                if (current.parent === potentialAncestorId) return true;
+                current = items.find(i => i.id === current.parent);
             }
-        });
+            return false;
+        }
 
-        console.log('Pragmatic Drag and Drop initialized!');
+        /**
+         * Update visual indicator for tree drop position.
+         */
+        function updateTreeIndicator(item, position) {
+            clearTreeIndicator(item);
+            if (position === 'above') item.classList.add('drop-above');
+            else if (position === 'below') item.classList.add('drop-below');
+            else if (position === 'inside') item.classList.add('drop-inside');
+        }
+
+        /**
+         * Clear all tree drop indicators.
+         */
+        function clearTreeIndicator(item) {
+            item.classList.remove('drop-above', 'drop-below', 'drop-inside');
+        }
+
+        /**
+         * Save parent change to server and update UI.
+         */
+        async function saveParentChange(itemId, newParent, itemLabel) {
+            const treeStatus = document.getElementById('tree-status');
+            treeStatus.textContent = 'Saving...';
+            treeStatus.className = 'status saving';
+
+            try {
+                await updateItemParent(itemId, newParent);
+
+                // Update local state
+                const item = items.find(i => i.id === itemId);
+                if (item) item.parent = newParent;
+
+                // Re-render tree
+                renderTree();
+
+                const parentText = newParent ? `"${newParent}"` : '(root level)';
+                treeStatus.textContent = `Set "${itemLabel}" parent to ${parentText}. Saved to CSV!`;
+                treeStatus.className = 'status';
+            } catch (error) {
+                treeStatus.textContent = `Error: ${error.message}`;
+                treeStatus.className = 'status error';
+            }
+        }
+
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+
+        async function init() {
+            try {
+                items = await fetchItems();
+                console.log('Loaded items:', items);
+
+                renderBoard();
+                renderTree();
+
+                console.log('Pragmatic Drag and Drop initialized!');
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+                document.getElementById('board-container').innerHTML =
+                    `<div class="status error">Failed to load data. Make sure the server is running!</div>`;
+                document.getElementById('tree-container').innerHTML =
+                    `<div class="status error">Failed to load data. Make sure the server is running!</div>`;
+            }
+        }
+
+        // Start the app
+        init();
+
+        // Monitor for debugging
+        monitorForElements({
+            onDragStart: ({ source }) => console.log('Drag started:', source.data),
+            onDrop: ({ source, location }) => console.log('Drop:', {
+                source: source.data,
+                targets: location.current.dropTargets.map(t => t.data)
+            })
+        });
     </script>
 </body>
 </html>

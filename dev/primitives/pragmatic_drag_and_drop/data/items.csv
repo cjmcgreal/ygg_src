@@ -1,0 +1,14 @@
+id,name,type,parent,status
+documents,Documents,folder,,todo
+images,Images,folder,,in-progress
+report,Report.pdf,file,documents,todo
+notes,Notes.txt,file,documents,in-progress
+photo1,Photo1.jpg,file,images,done
+photo2,Photo2.png,file,images,in-progress
+readme,README.md,file,documents,todo
+research,Research user needs,card,,todo
+wireframes,Create wireframes,card,,in-progress
+competitors,Review competitors,card,,todo
+mockups,Design mockups,card,,in-progress
+documentation,Write documentation,card,,done
+kickoff,Project kickoff,card,,done
