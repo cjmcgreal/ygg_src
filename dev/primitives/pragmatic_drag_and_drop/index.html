@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pragmatic Drag and Drop Examples</title>
+    <style>
+        /* ========================================
+           GENERAL STYLES
+           ======================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* ========================================
+           TAB NAVIGATION
+           ======================================== */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: #e0e0e0;
+            padding: 4px;
+            border-radius: 8px;
+            width: fit-content;
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #0052cc;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ========================================
+           BOARD STYLES (Kanban-like)
+           ======================================== */
+        .board {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding-bottom: 16px;
+        }
+
+        .column {
+            background: #ebecf0;
+            border-radius: 8px;
+            padding: 12px;
+            min-width: 280px;
+            max-width: 280px;
+        }
+
+        .column-header {
+            font-weight: 600;
+            color: #172b4d;
+            padding: 8px 4px;
+            margin-bottom: 8px;
+        }
+
+        .column-cards {
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* State when column is a valid drop target */
+        .column-cards.drop-target {
+            background: rgba(0, 82, 204, 0.1);
+            border-radius: 4px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 4px;
+            padding: 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            cursor: grab;
+            user-select: none;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        /* State when card is being dragged */
+        .card.dragging {
+            opacity: 0.5;
+            transform: rotate(3deg);
+        }
+
+        /* Visual indicator for where card will be placed */
+        .card.drop-indicator-top {
+            border-top: 3px solid #0052cc;
+        }
+
+        .card.drop-indicator-bottom {
+            border-bottom: 3px solid #0052cc;
+        }
+
+        /* ========================================
+           TREE STYLES (File tree-like)
+           ======================================== */
+        .tree {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            max-width: 400px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .tree-node {
+            margin-left: 0;
+        }
+
+        .tree-node .tree-node {
+            margin-left: 24px;
+        }
+
+        .tree-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: grab;
+            user-select: none;
+            transition: background 0.1s ease;
+        }
+
+        .tree-item:hover {
+            background: #f0f0f0;
+        }
+
+        .tree-item.dragging {
+            opacity: 0.5;
+            background: #e0e0e0;
+        }
+
+        /* Drop indicators for tree */
+        .tree-item.drop-above {
+            border-top: 2px solid #0052cc;
+        }
+
+        .tree-item.drop-below {
+            border-bottom: 2px solid #0052cc;
+        }
+
+        .tree-item.drop-inside {
+            background: rgba(0, 82, 204, 0.15);
+            border: 2px dashed #0052cc;
+        }
+
+        .tree-icon {
+            font-size: 18px;
+        }
+
+        .tree-label {
+            color: #333;
+        }
+
+        .tree-children {
+            overflow: hidden;
+        }
+
+        /* Folder toggle button */
+        .tree-toggle {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .tree-toggle:empty {
+            visibility: hidden;
+        }
+
+        /* ========================================
+           STATUS MESSAGES
+           ======================================== */
+        .status {
+            margin-top: 16px;
+            padding: 12px;
+            background: #e3fcef;
+            border-radius: 4px;
+            color: #006644;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pragmatic Drag and Drop Examples</h1>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+        <button class="tab-button active" data-tab="board">Board</button>
+        <button class="tab-button" data-tab="tree">Tree</button>
+    </div>
+
+    <!-- Board Tab Content -->
+    <div id="board" class="tab-content active">
+        <div class="board">
+            <!-- To Do Column -->
+            <div class="column" data-column="todo">
+                <div class="column-header">To Do</div>
+                <div class="column-cards" data-column-id="todo">
+                    <div class="card" data-card-id="1">Research user needs</div>
+                    <div class="card" data-card-id="2">Create wireframes</div>
+                    <div class="card" data-card-id="3">Review competitors</div>
+                </div>
+            </div>
+
+            <!-- In Progress Column -->
+            <div class="column" data-column="in-progress">
+                <div class="column-header">In Progress</div>
+                <div class="column-cards" data-column-id="in-progress">
+                    <div class="card" data-card-id="4">Design mockups</div>
+                    <div class="card" data-card-id="5">Write documentation</div>
+                </div>
+            </div>
+
+            <!-- Done Column -->
+            <div class="column" data-column="done">
+                <div class="column-header">Done</div>
+                <div class="column-cards" data-column-id="done">
+                    <div class="card" data-card-id="6">Project kickoff</div>
+                </div>
+            </div>
+        </div>
+        <div class="status" id="board-status">Drag cards between columns!</div>
+    </div>
+
+    <!-- Tree Tab Content -->
+    <div id="tree" class="tab-content">
+        <div class="tree">
+            <div class="tree-node" data-node-id="root">
+                <!-- Documents Folder -->
+                <div class="tree-node" data-node-id="documents">
+                    <div class="tree-item" data-type="folder" data-id="documents">
+                        <span class="tree-toggle">▼</span>
+                        <span class="tree-icon">📁</span>
+                        <span class="tree-label">Documents</span>
+                    </div>
+                    <div class="tree-children">
+                        <div class="tree-node" data-node-id="report">
+                            <div class="tree-item" data-type="file" data-id="report">
+                                <span class="tree-toggle"></span>
+                                <span class="tree-icon">📄</span>
+                                <span class="tree-label">Report.pdf</span>
+                            </div>
+                        </div>
+                        <div class="tree-node" data-node-id="notes">
+                            <div class="tree-item" data-type="file" data-id="notes">
+                                <span class="tree-toggle"></span>
+                                <span class="tree-icon">📄</span>
+                                <span class="tree-label">Notes.txt</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images Folder -->
+                <div class="tree-node" data-node-id="images">
+                    <div class="tree-item" data-type="folder" data-id="images">
+                        <span class="tree-toggle">▼</span>
+                        <span class="tree-icon">📁</span>
+                        <span class="tree-label">Images</span>
+                    </div>
+                    <div class="tree-children">
+                        <div class="tree-node" data-node-id="photo1">
+                            <div class="tree-item" data-type="file" data-id="photo1">
+                                <span class="tree-toggle"></span>
+                                <span class="tree-icon">🖼️</span>
+                                <span class="tree-label">Photo1.jpg</span>
+                            </div>
+                        </div>
+                        <div class="tree-node" data-node-id="photo2">
+                            <div class="tree-item" data-type="file" data-id="photo2">
+                                <span class="tree-toggle"></span>
+                                <span class="tree-icon">🖼️</span>
+                                <span class="tree-label">Photo2.png</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Single File -->
+                <div class="tree-node" data-node-id="readme">
+                    <div class="tree-item" data-type="file" data-id="readme">
+                        <span class="tree-toggle"></span>
+                        <span class="tree-icon">📄</span>
+                        <span class="tree-label">README.md</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="status" id="tree-status">Drag items to reorder or move into folders!</div>
+    </div>
+
+    <!--
+        JAVASCRIPT SECTION
+
+        We use ES modules loaded from esm.sh CDN.
+        This allows us to use npm packages directly in the browser!
+    -->
+    <script type="module">
+        // ========================================
+        // IMPORTS
+        //
+        // esm.sh is a CDN that converts npm packages to ES modules
+        // that can run directly in the browser
+        // ========================================
+        import {
+            draggable,
+            dropTargetForElements,
+            monitorForElements
+        } from 'https://esm.sh/@atlaskit/pragmatic-drag-and-drop@1.7.7/element/adapter';
+
+        // ========================================
+        // TAB SWITCHING LOGIC
+        // ========================================
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and contents
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                // Add active class to clicked button and corresponding content
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // ========================================
+        // BOARD EXAMPLE
+        //
+        // A Kanban-style board where cards can be
+        // dragged between columns
+        // ========================================
+
+        // Get all cards and columns
+        const cards = document.querySelectorAll('.card');
+        const columns = document.querySelectorAll('.column-cards');
+        const boardStatus = document.getElementById('board-status');
+
+        // Make each card draggable
+        cards.forEach(card => {
+            draggable({
+                element: card,
+
+                // getInitialData: Attach data to the drag operation
+                // This data will be available when the card is dropped
+                getInitialData: () => ({
+                    cardId: card.getAttribute('data-card-id'),
+                    cardText: card.textContent,
+                    sourceColumn: card.parentElement.getAttribute('data-column-id')
+                }),
+
+                // onDragStart: Called when dragging begins
+                onDragStart: () => {
+                    card.classList.add('dragging');
+                    boardStatus.textContent = `Dragging: "${card.textContent}"`;
+                },
+
+                // onDrop: Called when the drag operation ends
+                onDrop: () => {
+                    card.classList.remove('dragging');
+                }
+            });
+        });
+
+        // Make each column a drop target
+        columns.forEach(column => {
+            dropTargetForElements({
+                element: column,
+
+                // getData: Return data about this drop target
+                getData: () => ({
+                    columnId: column.getAttribute('data-column-id')
+                }),
+
+                // onDragEnter: Called when a draggable enters this target
+                onDragEnter: () => {
+                    column.classList.add('drop-target');
+                },
+
+                // onDragLeave: Called when a draggable leaves this target
+                onDragLeave: () => {
+                    column.classList.remove('drop-target');
+                },
+
+                // onDrop: Called when an item is dropped on this target
+                onDrop: ({ source }) => {
+                    column.classList.remove('drop-target');
+
+                    // Get the dragged card element
+                    const draggedCard = source.element;
+                    const sourceColumn = source.data.sourceColumn;
+                    const targetColumn = column.getAttribute('data-column-id');
+
+                    // Only move if it's a different column
+                    if (sourceColumn !== targetColumn) {
+                        // Move the card to this column
+                        column.appendChild(draggedCard);
+
+                        boardStatus.textContent =
+                            `Moved "${source.data.cardText}" from ${sourceColumn} to ${targetColumn}`;
+                    } else {
+                        boardStatus.textContent = `Card stayed in ${targetColumn}`;
+                    }
+                }
+            });
+        });
+
+        // ========================================
+        // TREE EXAMPLE
+        //
+        // A file tree where items can be reordered
+        // and moved into folders
+        // ========================================
+
+        const treeItems = document.querySelectorAll('.tree-item');
+        const treeStatus = document.getElementById('tree-status');
+
+        // Make each tree item draggable
+        treeItems.forEach(item => {
+            draggable({
+                element: item,
+
+                getInitialData: () => ({
+                    id: item.getAttribute('data-id'),
+                    type: item.getAttribute('data-type'),
+                    label: item.querySelector('.tree-label').textContent
+                }),
+
+                onDragStart: () => {
+                    item.classList.add('dragging');
+                    treeStatus.textContent = `Dragging: "${item.querySelector('.tree-label').textContent}"`;
+                },
+
+                onDrop: () => {
+                    item.classList.remove('dragging');
+                }
+            });
+
+            // Also make tree items drop targets
+            dropTargetForElements({
+                element: item,
+
+                // canDrop: Determine if we can drop on this target
+                // We allow dropping on folders, and above/below any item
+                canDrop: ({ source }) => {
+                    // Don't allow dropping on self
+                    return source.element !== item;
+                },
+
+                getData: ({ input, element }) => {
+                    // Calculate if we're in the top, middle, or bottom third
+                    const rect = element.getBoundingClientRect();
+                    const y = input.clientY;
+                    const relativeY = y - rect.top;
+                    const height = rect.height;
+
+                    let position;
+                    if (relativeY < height / 3) {
+                        position = 'above';
+                    } else if (relativeY > (height * 2) / 3) {
+                        position = 'below';
+                    } else {
+                        // Middle third - only allow "inside" for folders
+                        position = item.getAttribute('data-type') === 'folder' ? 'inside' : 'below';
+                    }
+
+                    return {
+                        id: item.getAttribute('data-id'),
+                        type: item.getAttribute('data-type'),
+                        position: position
+                    };
+                },
+
+                onDragEnter: ({ self }) => {
+                    // Clear previous indicators
+                    item.classList.remove('drop-above', 'drop-below', 'drop-inside');
+
+                    // Add indicator based on position
+                    const position = self.data.position;
+                    if (position === 'above') {
+                        item.classList.add('drop-above');
+                    } else if (position === 'below') {
+                        item.classList.add('drop-below');
+                    } else if (position === 'inside') {
+                        item.classList.add('drop-inside');
+                    }
+                },
+
+                onDrag: ({ self }) => {
+                    // Update indicator as cursor moves
+                    item.classList.remove('drop-above', 'drop-below', 'drop-inside');
+
+                    const position = self.data.position;
+                    if (position === 'above') {
+                        item.classList.add('drop-above');
+                    } else if (position === 'below') {
+                        item.classList.add('drop-below');
+                    } else if (position === 'inside') {
+                        item.classList.add('drop-inside');
+                    }
+                },
+
+                onDragLeave: () => {
+                    item.classList.remove('drop-above', 'drop-below', 'drop-inside');
+                },
+
+                onDrop: ({ source, self }) => {
+                    item.classList.remove('drop-above', 'drop-below', 'drop-inside');
+
+                    const draggedNode = source.element.closest('.tree-node');
+                    const targetNode = item.closest('.tree-node');
+                    const position = self.data.position;
+
+                    if (position === 'inside' && self.data.type === 'folder') {
+                        // Move into folder
+                        const folderChildren = targetNode.querySelector('.tree-children');
+                        if (folderChildren) {
+                            folderChildren.appendChild(draggedNode);
+                            treeStatus.textContent =
+                                `Moved "${source.data.label}" into folder "${self.data.id}"`;
+                        }
+                    } else if (position === 'above') {
+                        // Insert before target
+                        targetNode.parentElement.insertBefore(draggedNode, targetNode);
+                        treeStatus.textContent =
+                            `Moved "${source.data.label}" above "${self.data.id}"`;
+                    } else if (position === 'below') {
+                        // Insert after target
+                        targetNode.parentElement.insertBefore(draggedNode, targetNode.nextSibling);
+                        treeStatus.textContent =
+                            `Moved "${source.data.label}" below "${self.data.id}"`;
+                    }
+                }
+            });
+        });
+
+        // ========================================
+        // GLOBAL MONITOR
+        //
+        // Monitors all drag and drop operations
+        // Useful for logging, analytics, or global state
+        // ========================================
+        monitorForElements({
+            onDragStart: ({ source }) => {
+                console.log('Drag started:', source.data);
+            },
+            onDrop: ({ source, location }) => {
+                console.log('Drop completed:', {
+                    source: source.data,
+                    target: location.current.dropTargets[0]?.data
+                });
+            }
+        });
+
+        console.log('Pragmatic Drag and Drop initialized!');
+    </script>
+</body>
+</html>
